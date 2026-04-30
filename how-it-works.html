@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>推薦原理 — Vurv 怎麼挑下一首歌</title>
+<meta name="description" content="Vurv 用 tag-based similarity 計算歌曲相似度,本頁說明 tag 系統怎麼設計、Jaccard 相似度怎麼算、探索滑桿如何運作、以及為什麼選擇這個方法而不是 collaborative filtering。" />
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4668297380257099"
+        crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --surface: #ffffff;
+    --text: #1a1a1a;
+    --text-muted: #6b6b6b;
+    --text-2: #8a8580;
+    --border: #e5e3de;
+    --accent: #d96e3a;
+    --code-bg: #f5f3ee;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    padding: 40px 20px 80px;
+  }
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--surface);
+    padding: 48px 40px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+  header {
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--accent);
+  }
+  h1 { font-size: 32px; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .subtitle { color: var(--text-muted); font-size: 16px; }
+  h2 {
+    font-size: 22px;
+    margin: 36px 0 14px;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+  }
+  h3 {
+    font-size: 17px;
+    margin: 24px 0 8px;
+    color: var(--text);
+  }
+  p { margin-bottom: 14px; color: #2a2a2a; font-size: 16px; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 14px;
+    color: #b04a1f;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0 16px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: var(--text);
+  }
+  blockquote {
+    margin: 16px 0;
+    padding: 12px 18px;
+    border-left: 3px solid var(--accent);
+    background: #faf6f1;
+    color: #4a4540;
+    font-style: italic;
+  }
+  ul { margin: 8px 0 16px 22px; }
+  li { margin-bottom: 8px; }
+  a { color: var(--accent); }
+  .ad-container {
+    margin: 36px -8px;
+    padding: 18px;
+    background: #fbfaf7;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .ad-container .ad-label {
+    font-size: 11px;
+    color: var(--text-2);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .nav-back {
+    display: inline-block;
+    margin-top: 36px;
+    padding: 10px 22px;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .other-pages {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .other-pages a {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .other-pages a:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>推薦原理</h1>
+      <div class="subtitle">Vurv 怎麼從一首歌推到下一首</div>
+    </header>
+
+    <h2>核心問題</h2>
+    <p>當你在 Spotify 按下某首歌的「Song Radio」,後台發生的事大概是這樣:演算法看你最近聽過什麼,把你跟「行為相似的其他使用者」聚在一起,然後給你他們也在聽的歌。這叫做 <strong>collaborative filtering(協同過濾)</strong>,是過去 15 年串流推薦的主流做法。</p>
+    <p>它有一個明顯的弱點:**它推給你的是「跟你類似的人會聽的歌」,不是「跟你選的種子歌相似的歌」**。如果你選 Radiohead 的 No Surprises,系統可能給你 Coldplay,因為很多 Radiohead 聽眾也聽 Coldplay,但這兩首歌音樂上其實滿不一樣。</p>
+    <p>Vurv 想解決的是第二個問題 — **音樂特質上的相似**。所以從第一行 code 開始,我就決定不走 collaborative filtering。</p>
+
+    <h2>用 Tag 描述每一首歌</h2>
+    <p>Vurv 庫裡的每一首歌,我都會親手標註 5 到 12 個 tag,涵蓋這幾個維度:</p>
+    <ul>
+      <li><strong>子類型</strong>:indie-pop、city-pop、bedroom-pop、neo-soul、lo-fi-hip-hop、ambient-electronic 等(不是粗略的 pop/rock/jazz,而是細到能區分不同次文化的程度)</li>
+      <li><strong>編制 / 配器</strong>:acoustic-guitar、synth-heavy、string-arrangement、minimal-piano、drum-machine、live-band 等</li>
+      <li><strong>情緒 / 質地</strong>:melancholic、euphoric、wistful、playful、tense、cinematic、dreamy、urgent</li>
+      <li><strong>節奏 / 動能</strong>:slow-tempo、mid-tempo、driving-beat、polyrhythmic、syncopated</li>
+      <li><strong>年代 / 地區</strong>:80s-japan、90s-uk、2010s-mandarin、early-2000s-rnb 等(風格上的年代,不是發行年)</li>
+      <li><strong>結構 / 製作</strong>:vocal-forward、production-heavy、stripped-down、fade-out-ending、build-up-structure</li>
+    </ul>
+    <p>例如蔡健雅的「紅色高跟鞋」,我給的 tag 大概是:`mandarin-pop`、`acoustic-guitar`、`mid-tempo`、`wistful`、`vocal-forward`、`2000s-mandarin`、`narrative-lyrics`。蘇打綠的「無與倫比的美麗」可能是:`mandarin-pop`、`indie-rock`、`mid-tempo`、`euphoric`、`string-arrangement`、`vocal-forward`、`build-up-structure`。它們有 4 個 tag 重疊。</p>
+
+    <h2>Jaccard 相似度</h2>
+    <p>兩首歌的相似度,用一個高中數學就能懂的公式:</p>
+    <pre><code>similarity(A, B) = |A ∩ B| / |A ∪ B|</code></pre>
+    <p>分子是兩首歌共享的 tag 數量,分母是兩首歌 tag 的聯集大小。這個公式叫 <strong>Jaccard similarity</strong>,結果永遠在 0 到 1 之間。</p>
+    <p>用上面的例子:</p>
+    <ul>
+      <li>共享 tag(交集):mandarin-pop、mid-tempo、vocal-forward、(差不多算)wistful 跟 euphoric 不同 — 算 3 個交集</li>
+      <li>聯集:大約 11 個 tag</li>
+      <li>相似度 ≈ 3/11 ≈ 0.27</li>
+    </ul>
+    <p>這個數字代表什麼?Vurv 把 0.45 以上歸類為「很像」、0.25~0.45 是「類似但有差異」、0.10~0.25 是「跨界但相關」、0.10 以下基本上不推。**所以蔡健雅 → 蘇打綠這條線,Vurv 會推,但不會是第一順位**。</p>
+
+    <h2>探索滑桿:讓使用者控制驚喜程度</h2>
+    <p>這是 Vurv 跟其他推薦系統最大的差別之一。畫面右上角的滑桿從 0 滑到 100,實時改變推薦的「最低相似度門檻」:</p>
+    <pre><code>minThreshold = 0.45 - (slider / 100) × 0.35</code></pre>
+    <p>翻譯成白話:</p>
+    <ul>
+      <li>滑桿在 0(最相似)→ 門檻 0.45 → 只給高度相似的歌</li>
+      <li>滑桿在 50(中間)→ 門檻 0.275 → 開始混入跨次類型的歌</li>
+      <li>滑桿在 100(最探索)→ 門檻 0.10 → 連跨大類別的歌也會出現,只要有一點點 tag 共通</li>
+    </ul>
+    <p>為什麼這個設計重要?**因為「我今天想要什麼」會變**。同一首種子歌,你今天可能只想要更深入這個小宇宙(滑桿往左拉),明天想要從這裡出發看更遠(滑桿往右拉)。固定的推薦系統做不到這件事 — 它要嘛幫你深入、要嘛強迫你跳出去。Vurv 把方向盤交給你。</p>
+
+    <h2>越滑越懂你:即時 boost queue</h2>
+    <p>當你按下「喜歡」一首歌,Vurv 在背後做了這件事:</p>
+    <pre><code>for each song in remaining_queue:
+    if song shares tags with the liked song:
+        song.score += 0.1 × shared_tag_count
+
+for each song in remaining_queue:
+    if song shares tags with the skipped song:
+        song.score -= 0.06 × shared_tag_count</code></pre>
+    <p>每次喜歡 / 跳過都會重排剩下的待推薦佇列。這個機制有兩個效果:</p>
+    <ul>
+      <li><strong>正向放大</strong>:你喜歡的特質會被加權,接下來推給你的歌會更朝這個方向收斂</li>
+      <li><strong>負向修剪</strong>:你跳過的特質會被扣分(但扣得比加分少,所以演算法不會過度反應你的一兩次跳過)</li>
+    </ul>
+    <p>這是非常便宜的 reinforcement learning,沒有用神經網路、沒有用 embedding,就只是 tag 加減分。但效果出乎意料的好 — 你大概滑 5~10 張之後,Vurv 就明顯跟得上你今天的心情。</p>
+
+    <h2>為什麼不用 collaborative filtering 或 audio embedding?</h2>
+
+    <h3>不用 collaborative filtering 的原因</h3>
+    <p>Collaborative filtering 需要大量使用者行為資料 — 至少幾萬個用戶聽過幾百萬首歌的紀錄,才能跑出有意義的相似度矩陣。Vurv 是新做的、用戶量小、不收集使用者資料,根本沒有這種冷啟動條件。而且就算有,我前面提過 — 它推的是「跟你像的人聽什麼」,不是「跟你選的歌像什麼」,跟 Vurv 的核心命題不對齊。</p>
+
+    <h3>不用 audio embedding 的原因</h3>
+    <p>Audio embedding(用 neural network 從音訊本身產出向量)聽起來很潮,Spotify 也在用。但它有兩個問題:第一,跑一首歌的 embedding 需要 GPU 推論,對一個個人專案來說成本太高;第二,**embedding 的維度語意不明** — 你算出兩首歌 cosine similarity = 0.83,你不知道它們在哪些方面相似。Vurv 的 tag 是有明確語意的,我可以告訴你「這兩首共享 acoustic-guitar 跟 melancholic」,你看了就懂為什麼。對 Vurv 來說,**可解釋性 > 自動化**。</p>
+
+    <h2>目前的限制</h2>
+    <ul>
+      <li><strong>歌庫小</strong>:200 多首,跟 Spotify 的 1 億首沒得比。但因為手動標 tag,精準度比 audio analysis 高。</li>
+      <li><strong>Tag 是我的主觀</strong>:同一首歌不同人標可能不一樣。未來想做使用者貢獻 tag 的功能。</li>
+      <li><strong>不支援多首種子</strong>:現在只能從一首歌開始,未來可能加入「從 3 首歌的交集出發」。</li>
+      <li><strong>時間動態還很弱</strong>:今天滑卡的偏好不會記到明天。每天都從零開始。這是設計取捨,不是 bug — 但確實是限制。</li>
+    </ul>
+
+    <h2>結語</h2>
+    <p>Vurv 的演算法刻意保持簡單。我相信**對於「找到下一首像這首的歌」這個明確的問題,Jaccard + tag 已經夠用**。複雜度應該花在標好 tag、設計好 UX、讓使用者能掌控過程上,而不是疊神經網路。如果你覺得這個論點怪怪的、想吵一下,寫信給我:<a href="mailto:mitsai0701@gmail.com">mitsai0701@gmail.com</a>。</p>
+
+    <a href="/" class="nav-back">← 試試看 Vurv</a>
+
+    <div class="other-pages">
+      <a href="/about">關於 Vurv</a>
+      <a href="/privacy">隱私權政策</a>
+    </div>
+  </div>
+</body>
+</html>

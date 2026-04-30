@@ -1,0 +1,2664 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Vurv — 從一首歌開始的音樂探索</title>
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4668297380257099"
+        crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --surface: #ffffff;
+    --surface-2: #f3f1ea;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.16);
+    --text: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --primary: #534AB7;
+    --primary-50: #EEEDFE;
+    --primary-100: #CECBF6;
+    --primary-800: #3C3489;
+    --accent: #D85A30;
+    --teal: #1D9E75;
+    --teal-50: #E1F5EE;
+    --pink-50: #FBEAF0;
+    --amber-50: #FAEEDA;
+    --radius: 14px;
+    --radius-lg: 22px;
+    --radius-xl: 28px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f0f10;
+      --surface: #1c1c1f;
+      --surface-2: #232326;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text: #f0f0f0;
+      --text-2: #a8a8a8;
+      --text-3: #6e6e6e;
+      --primary-50: #2a2569;
+      --primary-100: #3C3489;
+      --primary-800: #CECBF6;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app {
+    max-width: 420px;
+    margin: 0 auto;
+    height: 100vh;        /* fallback */
+    height: 100dvh;       /* iOS Safari 等動態視窗,扣掉網址列才不會超出 */
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 14px 18px max(110px, calc(80px + env(safe-area-inset-bottom)));
+    display: none;
+    animation: fadeIn .25s ease;
+  }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 4px 18px;
+  }
+  .topbar h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .topbar-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform .15s ease;
+  }
+  .topbar-icon:active { transform: scale(0.94); }
+
+  /* Search */
+  .search {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+  }
+  .search input::placeholder { color: var(--text-3); }
+  .search-icon {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--text-3);
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .search-icon::after {
+    content: '';
+    position: absolute;
+    width: 1.5px; height: 7px;
+    background: var(--text-3);
+    bottom: -5px; right: -1px;
+    transform: rotate(-45deg);
+    border-radius: 1px;
+  }
+
+  /* Section heading */
+  .section-title {
+    font-size: 13px;
+    color: var(--text-2);
+    font-weight: 500;
+    margin-bottom: 12px;
+    padding: 0 2px;
+  }
+  .section-title.spaced { margin-top: 28px; }
+
+  /* Seed grid */
+  .seed-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .seed-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    cursor: pointer;
+    transition: transform .15s ease, border-color .15s;
+    text-align: left;
+    font-family: inherit;
+    color: var(--text);
+    min-width: 0;
+    overflow: hidden;
+  }
+  .seed-card:active { transform: scale(0.97); }
+  .seed-card:hover { border-color: var(--border-strong); }
+  .seed-cover {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .seed-cover .play-pill {
+    position: absolute;
+    bottom: 8px; right: 8px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .seed-cover .play-pill::after {
+    content: '';
+    border-left: 8px solid var(--primary);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    margin-left: 2px;
+  }
+  .seed-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .seed-artist {
+    font-size: 12px;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Discover screen */
+  .discover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 4px 16px;
+  }
+  .seed-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px 6px 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .seed-pill .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.85); }
+  }
+  .seed-pill .label { color: var(--text-3); font-size: 11px; }
+  .seed-pill .name { font-weight: 500; }
+
+  /* Card stack */
+  .stack {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 0.78;
+    margin: 0 auto 18px;
+  }
+  .card {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    cursor: grab;
+    user-select: none;
+    transition: transform .35s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
+    will-change: transform;
+  }
+  .card.dragging { transition: none; cursor: grabbing; }
+  .card-cover {
+    flex: 1;
+    border-radius: var(--radius-lg);
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-cover .play-btn {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform .15s ease;
+  }
+  .card-cover .play-btn:active { transform: scale(0.92); }
+  .card-cover .play-btn::after {
+    content: '';
+    border-left: 18px solid var(--primary);
+    border-top: 11px solid transparent;
+    border-bottom: 11px solid transparent;
+    margin-left: 4px;
+  }
+  .card-cover .play-btn.playing::after {
+    content: '';
+    border: none;
+    width: 14px; height: 14px;
+    background: var(--primary);
+    margin: 0;
+    border-radius: 2px;
+  }
+  .card-cover .progress {
+    position: absolute;
+    bottom: 12px; left: 12px; right: 12px;
+    height: 3px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .card-cover .progress-bar {
+    height: 100%;
+    background: rgba(255,255,255,0.95);
+    width: 0%;
+    transition: width .1s linear;
+  }
+  .card-cover .timestamp {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .swipe-hint {
+    position: absolute;
+    top: 18px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity .15s ease;
+    pointer-events: none;
+    border: 2px solid;
+  }
+  .swipe-hint.like {
+    right: 18px;
+    color: var(--teal);
+    border-color: var(--teal);
+    background: rgba(29, 158, 117, 0.1);
+    transform: rotate(8deg);
+  }
+  .swipe-hint.skip {
+    left: 18px;
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(216, 90, 48, 0.1);
+    transform: rotate(-8deg);
+  }
+  .card-info { padding: 0 4px; }
+  .song-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 3px;
+    letter-spacing: -0.01em;
+  }
+  .song-meta {
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 12px;
+  }
+  .why {
+    background: var(--primary-50);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .why { background: rgba(83, 74, 183, 0.15); }
+  }
+  .why-label {
+    font-size: 11px;
+    color: var(--primary);
+    margin-bottom: 7px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  @media (prefers-color-scheme: dark) {
+    .why-label { color: var(--primary-100); }
+  }
+  .why-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .why-tag {
+    background: var(--surface);
+    color: var(--primary-800);
+    font-size: 12px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+  @media (prefers-color-scheme: dark) {
+    .why-tag { background: rgba(255,255,255,0.06); color: var(--primary-100); }
+  }
+  .why-meter {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .why-meter .bar {
+    flex: 1;
+    height: 4px;
+    background: var(--surface);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  @media (prefers-color-scheme: dark) {
+    .why-meter .bar { background: rgba(255,255,255,0.1); }
+  }
+  .why-meter .bar-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 2px;
+    transition: width .4s ease;
+  }
+  .why-meter .pct {
+    font-size: 11px;
+    color: var(--primary-800);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (prefers-color-scheme: dark) {
+    .why-meter .pct { color: var(--primary-100); }
+  }
+
+  /* Action row */
+  .actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 14px;
+  }
+  .action-btn {
+    border: none;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform .12s ease, background .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .action-btn:active { transform: scale(0.9); }
+  .action-btn.small {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+  }
+  .action-btn.large {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: none;
+    color: #fff;
+  }
+  .action-btn.large:hover { background: var(--primary-800); }
+  .action-icon-x {
+    position: relative;
+    width: 18px; height: 18px;
+  }
+  .action-icon-x::before, .action-icon-x::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .action-icon-x::before { transform: translateY(-50%) rotate(45deg); }
+  .action-icon-x::after { transform: translateY(-50%) rotate(-45deg); }
+  .action-icon-heart {
+    width: 28px; height: 28px;
+    background: #fff;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7-4.5-9.5-9.5C.5 7 4 3 7.5 3c2 0 3.5 1 4.5 2.5C13 4 14.5 3 16.5 3 20 3 23.5 7 21.5 11.5 19 16.5 12 21 12 21z'/></svg>") center/contain no-repeat;
+    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7-4.5-9.5-9.5C.5 7 4 3 7.5 3c2 0 3.5 1 4.5 2.5C13 4 14.5 3 16.5 3 20 3 23.5 7 21.5 11.5 19 16.5 12 21 12 21z'/></svg>") center/contain no-repeat;
+  }
+  .action-icon-bookmark {
+    width: 18px; height: 18px;
+    border: 2px solid var(--text-2);
+    border-bottom: none;
+    position: relative;
+  }
+  .action-icon-bookmark::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: -2px; right: -2px;
+    height: 6px;
+    background: var(--text-2);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+
+  /* Mini queue */
+  .queue {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+  }
+  .queue-label {
+    font-size: 12px;
+    color: var(--text-2);
+  }
+  .queue-stats {
+    font-size: 12px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-2);
+  }
+  .empty-state .big {
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  /* Liked songs list */
+  .liked-list { display: flex; flex-direction: column; gap: 4px; }
+  .liked-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .liked-item:hover { background: var(--surface); }
+  .liked-delete {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s, color .15s;
+    font-size: 15px;
+  }
+  .liked-delete:hover { background: #FFE5E5; color: #D94040; }
+  .liked-cover {
+    width: 48px; height: 48px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .liked-info { flex: 1; min-width: 0; }
+  .liked-title {
+    font-size: 14px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .liked-artist {
+    font-size: 12px;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .liked-pct {
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 8px max(10px, env(safe-area-inset-bottom));
+  }
+  .nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 8px 4px;
+    cursor: pointer;
+    color: var(--text-3);
+    font-family: inherit;
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: color .15s;
+  }
+  .nav-btn.active { color: var(--primary); }
+  .nav-icon {
+    width: 22px; height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-icon svg { width: 100%; height: 100%; }
+
+  /* Settings sheet */
+  .sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+    z-index: 50;
+  }
+  .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg);
+    border-radius: 22px 22px 0 0;
+    padding: 14px 22px max(28px, env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.2,.7,.2,1);
+    z-index: 51;
+    max-height: 70%;
+    overflow-y: auto;
+  }
+  .sheet.open { transform: translateY(0); }
+  .sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--border-strong);
+    border-radius: 2px;
+    margin: 0 auto 14px;
+  }
+  .sheet h3 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .sheet .subtle { font-size: 13px; color: var(--text-2); margin-bottom: 22px; }
+  .slider-row { margin-bottom: 22px; }
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .slider-label .key { font-weight: 500; }
+  .slider-label .val { color: var(--primary); font-weight: 600; }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--surface-2);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    background: var(--primary);
+    border: 3px solid var(--bg);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 22px; height: 22px;
+    background: var(--primary);
+    border: 3px solid var(--bg);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .ends {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 6px;
+  }
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .chip {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border);
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .chip.active {
+    background: var(--primary-50);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  @media (prefers-color-scheme: dark) {
+    .chip.active { background: rgba(83,74,183,0.2); }
+  }
+  .sheet-btn {
+    width: 100%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 8px;
+  }
+
+  /* Streaming Links Sheet */
+  .stream-sheet {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg);
+    border-radius: 26px 26px 0 0;
+    padding: 0 20px max(32px, env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform .32s cubic-bezier(.2,.7,.2,1);
+    z-index: 54;
+  }
+  .stream-sheet.open { transform: translateY(0); }
+  .stream-sheet .handle {
+    width: 36px; height: 4px;
+    background: var(--border-strong);
+    border-radius: 2px;
+    margin: 14px auto 18px;
+  }
+  .stream-song-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .stream-song-cover {
+    width: 52px; height: 52px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  .stream-song-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .stream-song-artist { font-size: 13px; color: var(--text-2); }
+  .stream-label {
+    font-size: 12px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .stream-btns { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .stream-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background .15s, transform .12s;
+  }
+  .stream-btn:active { transform: scale(0.97); background: var(--surface-2); }
+  .stream-btn .svc-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+  }
+  .stream-btn .svc-name { flex: 1; }
+  .stream-btn .svc-arrow { color: var(--text-3); font-size: 13px; }
+
+  /* Seed Preview Sheet */
+  .seed-preview-sheet {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg);
+    border-radius: 26px 26px 0 0;
+    padding: 0 22px max(32px, env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform .2s cubic-bezier(.2,.7,.2,1);
+    z-index: 52;
+    overflow: hidden;
+  }
+  .seed-preview-sheet.open { transform: translateY(0); }
+  .seed-preview-sheet .handle {
+    width: 36px; height: 4px;
+    background: var(--border-strong);
+    border-radius: 2px;
+    margin: 14px auto 22px;
+  }
+  .seed-preview-cover {
+    width: 100%;
+    aspect-ratio: 1.8;
+    border-radius: var(--radius-lg);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  .seed-preview-cover .sp-play-btn {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform .15s ease;
+    flex-shrink: 0;
+  }
+  .seed-preview-cover .sp-play-btn:active { transform: scale(0.92); }
+  .seed-preview-cover .sp-play-btn::after {
+    content: '';
+    border-left: 16px solid var(--primary);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    margin-left: 4px;
+  }
+  .seed-preview-cover .sp-play-btn.playing::after {
+    content: '';
+    border: none;
+    width: 13px; height: 13px;
+    background: var(--primary);
+    margin: 0;
+    border-radius: 2px;
+  }
+  .seed-preview-cover .sp-progress {
+    position: absolute;
+    bottom: 12px; left: 14px; right: 14px;
+    height: 3px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .seed-preview-cover .sp-bar {
+    height: 100%;
+    background: rgba(255,255,255,0.95);
+    width: 0%;
+    transition: width .1s linear;
+  }
+  .seed-preview-cover .sp-ts {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .sp-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 3px;
+  }
+  .sp-artist {
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 22px;
+  }
+  .sp-ready-label {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .sp-ready-label.show { opacity: 1; transform: translateY(0); }
+  .sp-confirm-btn {
+    width: 100%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 15px;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .2s ease .08s, transform .2s ease .08s, background .15s;
+    pointer-events: none;
+  }
+  .sp-confirm-btn.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .sp-confirm-btn:active { background: var(--primary-800); }
+  .sp-close {
+    position: absolute;
+    top: 20px; right: 22px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: var(--text-2);
+    font-family: inherit;
+  }
+
+  /* Daily counter pill */
+  .daily-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-3);
+    padding: 0 6px;
+  }
+  .daily-pill .dp-bar {
+    width: 60px;
+    height: 4px;
+    background: var(--surface-2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .daily-pill .dp-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 2px;
+    transition: width .3s ease;
+  }
+  .daily-pill.warn .dp-fill { background: #E07B2A; }
+  .daily-pill.full .dp-fill { background: #D94040; }
+
+  /* Ad overlay */
+  .ad-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 80;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  .ad-overlay.open { opacity: 1; pointer-events: auto; }
+  .ad-card {
+    width: 100%;
+    background: var(--bg);
+    border-radius: 26px 26px 0 0;
+    padding: 22px 22px max(32px, env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform .25s cubic-bezier(.2,.7,.2,1);
+  }
+  .ad-overlay.open .ad-card { transform: translateY(0); }
+  .ad-handle {
+    width: 36px; height: 4px;
+    background: var(--border-strong);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .ad-title {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .ad-sub {
+    font-size: 13px;
+    color: var(--text-2);
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .ad-box {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ad-box-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    position: absolute;
+    top: 10px; left: 12px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .ad-box-icon { font-size: 36px; }
+  .ad-box-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .ad-box-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+  }
+  .ad-countdown {
+    position: absolute;
+    top: 10px; right: 12px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 99px;
+  }
+  .ad-confirm-btn {
+    width: 100%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 15px;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s, opacity .15s;
+  }
+  .ad-confirm-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* Toast */
+  .toast {
+    position: absolute;
+    bottom: 100px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+    z-index: 60;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+
+  /* ===== Force theme overrides ===== */
+  html.force-dark {
+    --bg: #0f0f10; --surface: #1c1c1f; --surface-2: #232326;
+    --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.18);
+    --text: #f0f0f0; --text-2: #a8a8a8; --text-3: #6e6e6e;
+    --primary-50: #2a2569; --primary-100: #3C3489; --primary-800: #CECBF6;
+    color-scheme: dark;
+  }
+  html.force-light {
+    --bg: #faf9f6; --surface: #ffffff; --surface-2: #f3f1ea;
+    --border: rgba(0,0,0,0.08); --border-strong: rgba(0,0,0,0.16);
+    --text: #1a1a1a; --text-2: #6b6b6b; --text-3: #9a9a9a;
+    --primary-50: #EEEDFE; --primary-100: #CECBF6; --primary-800: #3C3489;
+    color-scheme: light;
+  }
+
+  /* ===== Toggle switch ===== */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+  .toggle-row .key { font-size: 13px; font-weight: 500; }
+  .toggle-row .toggle-hint { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+  .toggle-switch {
+    position: relative;
+    width: 48px; height: 28px;
+    flex-shrink: 0;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+  }
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 20px; height: 20px;
+    background: var(--text-3);
+    border-radius: 50%;
+    transition: transform .2s, background .2s;
+  }
+  .toggle-switch input:checked + .toggle-track {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .toggle-switch input:checked + .toggle-track::after {
+    transform: translateX(20px);
+    background: #fff;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HOME / COLD START -->
+  <div class="screen active" id="screen-home">
+    <div class="topbar">
+      <h1>Vurv</h1>
+      <div class="topbar-icon" onclick="openSettings()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </div>
+
+    <div class="search">
+      <div class="search-icon"></div>
+      <input id="search-input" placeholder="找一首你最近循環播放的歌…" autocomplete="off" />
+    </div>
+
+    <div class="section-title">挑一首作為起點</div>
+    <div class="seed-grid" id="seed-grid"></div>
+
+    <div class="section-title spaced">為什麼是這幾首</div>
+    <div style="font-size: 13px; color: var(--text-2); line-height: 1.7; padding: 0 4px;">
+      Vurv 會分析這首歌的旋律走向、情緒、樂器配置、節奏型態,然後一首一首推給你類似的歌。每滑一張,演算法就更懂你一點。我們不用協同過濾,而是用 tag-based similarity — 每首歌都被標註 5 到 12 個音樂特徵 tag,用 Jaccard 相似度算重疊度。這代表每首推薦都有可解釋的理由,你會看到這首跟你的種子歌共享了哪 3 個 tag、相似度幾分。
+    </div>
+
+    <div class="section-title spaced">深入了解</div>
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 0 4px;">
+      <a href="/about" style="display: block; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; text-decoration: none; color: var(--text);">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">關於 Vurv →</div>
+        <div style="font-size: 12px; color: var(--text-2);">為什麼做這個 app、和主流串流推薦哪裡不一樣、我相信什麼</div>
+      </a>
+      <a href="/how-it-works" style="display: block; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; text-decoration: none; color: var(--text);">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">推薦原理 →</div>
+        <div style="font-size: 12px; color: var(--text-2);">Tag 系統怎麼設計、Jaccard 相似度怎麼算、探索滑桿做什麼用</div>
+      </a>
+    </div>
+
+    <div style="text-align: center; padding: 32px 0 16px; font-size: 11px; color: var(--text-3, #999);">
+      © 2026 Vurv · <a href="/about" style="color: inherit; text-decoration: underline;">關於</a> · <a href="/how-it-works" style="color: inherit; text-decoration: underline;">推薦原理</a> · <a href="/privacy" style="color: inherit; text-decoration: underline;">隱私權政策</a>
+    </div>
+  </div>
+
+  <!-- DISCOVER / CARD STACK -->
+  <div class="screen" id="screen-discover">
+    <div class="discover-header">
+      <button class="seed-pill" onclick="goHome()" style="border: 0.5px solid var(--border); cursor: pointer; font-family: inherit; color: var(--text);">
+        <span class="dot"></span>
+        <span style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+          <span class="label">種子歌</span>
+          <span class="name" id="seed-pill-name">—</span>
+        </span>
+      </button>
+      <div class="topbar-icon" onclick="openSettings()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+      </div>
+    </div>
+
+    <div class="stack" id="stack"></div>
+
+    <div class="actions">
+      <button class="action-btn small" onclick="reactToCard('skip')" title="跳過">
+        <div class="action-icon-x"></div>
+      </button>
+      <button class="action-btn large" onclick="reactToCard('like')" title="喜歡">
+        <div class="action-icon-heart"></div>
+      </button>
+    </div>
+
+    <div class="queue">
+      <span class="queue-label" id="queue-label"></span>
+      <span class="queue-stats" id="queue-stats">已聽 0 · 喜歡 0</span>
+    </div>
+    <div class="daily-pill" id="daily-pill">
+      <div class="dp-bar"><div class="dp-fill" id="dp-fill"></div></div>
+      <span id="dp-text"></span>
+    </div>
+  </div>
+
+  <!-- LIKES -->
+  <div class="screen" id="screen-likes">
+    <div class="topbar">
+      <h1>我的歌單</h1>
+    </div>
+    <div class="liked-list" id="liked-list"></div>
+    <div class="empty-state" id="empty-likes">
+      <div class="big">還沒有喜歡的歌</div>
+      <div>滑卡片時點愛心,就會收到這裡</div>
+    </div>
+  </div>
+
+  <!-- STREAMING LINKS SHEET -->
+  <div class="sheet-backdrop" id="stream-backdrop" onclick="closeStreamSheet()"></div>
+  <div class="stream-sheet" id="stream-sheet">
+    <div class="handle"></div>
+    <div class="stream-song-info">
+      <div class="stream-song-cover" id="stream-cover"></div>
+      <div>
+        <div class="stream-song-title" id="stream-title"></div>
+        <div class="stream-song-artist" id="stream-artist"></div>
+      </div>
+    </div>
+    <div class="stream-label">選擇平台收聽</div>
+    <div class="stream-btns" id="stream-btns"></div>
+  </div>
+
+  <!-- AD OVERLAY -->
+  <div class="ad-overlay" id="ad-overlay">
+    <div class="ad-card">
+      <div class="ad-handle"></div>
+      <div class="ad-title">今天的推薦用完了 🌙</div>
+      <div class="ad-sub">Vurv 一天為你推 50 首,我們明天再繼續。</div>
+      <div class="ad-box" id="ad-box">
+        <div class="ad-fallback" id="ad-fallback">
+          <div class="ad-box-icon">☕</div>
+          <div class="ad-box-text">在等明天的時候</div>
+          <div class="ad-box-sub">看看 Vurv 的故事 / 推薦原理是什麼</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 14px;">
+        <a href="/about" style="flex:1; padding: 12px 14px; text-align: center; background: #faf6f1; border: 1px solid var(--border); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px;">關於 Vurv</a>
+        <a href="/how-it-works" style="flex:1; padding: 12px 14px; text-align: center; background: #faf6f1; border: 1px solid var(--border); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px;">推薦原理</a>
+      </div>
+      <button class="ad-confirm-btn" onclick="closeLimitOverlay()" style="margin-top: 10px;">關閉</button>
+    </div>
+  </div>
+
+  <!-- SEED PREVIEW SHEET -->
+  <div class="sheet-backdrop" id="seed-preview-backdrop" onclick="closeSeedPreview()"></div>
+  <div class="seed-preview-sheet" id="seed-preview-sheet">
+    <div class="handle"></div>
+    <button class="sp-close" onclick="closeSeedPreview()">✕</button>
+    <div class="seed-preview-cover" id="sp-cover">
+      <div class="sp-play-btn" id="sp-play-btn" onclick="toggleSeedPlay()"></div>
+      <div class="sp-ts" id="sp-ts">0:00 / 0:30</div>
+      <div class="sp-progress"><div class="sp-bar" id="sp-bar"></div></div>
+    </div>
+    <div class="sp-title" id="sp-title"></div>
+    <div class="sp-artist" id="sp-artist"></div>
+    <div class="sp-ready-label" id="sp-ready-label">你準備好被推薦了嗎？</div>
+    <button class="sp-confirm-btn" id="sp-confirm-btn" onclick="confirmSeed()">開始推薦 →</button>
+  </div>
+
+  <!-- SETTINGS SHEET -->
+  <div class="sheet-backdrop" id="sheet-backdrop" onclick="closeSettings()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <h3>調整推薦的味道</h3>
+    <p class="subtle">你可以把推薦調得更貼近原曲,或往外探索一點。</p>
+
+    <div class="slider-row">
+      <div class="slider-label">
+        <span class="key">相似度</span>
+        <span class="val" id="sim-val">中等</span>
+      </div>
+      <input type="range" min="0" max="100" value="60" id="sim-slider" />
+      <div class="ends">
+        <span>幾乎一樣</span>
+        <span>同個味道但更新鮮</span>
+      </div>
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-label">
+        <span class="key">語言偏好</span>
+      </div>
+      <div class="filter-chips" id="lang-chips">
+        <button class="chip active" data-lang="all">全部</button>
+        <button class="chip" data-lang="mandopop">華語</button>
+        <button class="chip" data-lang="western">西洋</button>
+        <button class="chip" data-lang="kpop">K-Pop</button>
+        <button class="chip" data-lang="jpop">J-Pop</button>
+      </div>
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-label">
+        <span class="key">音量</span>
+        <span class="val" id="vol-val">85%</span>
+      </div>
+      <input type="range" min="0" max="100" value="85" id="vol-slider" />
+      <div class="ends"><span>🔇</span><span>🔊</span></div>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="key">深色模式</div>
+        <div class="toggle-hint" id="theme-hint">跟隨系統</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="dark-toggle" onchange="applyTheme()" />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <button class="sheet-btn" onclick="closeSettings()">套用</button>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" data-screen="home" onclick="navTo('home')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      首頁
+    </button>
+    <button class="nav-btn" data-screen="discover" onclick="navTo('discover')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
+      探索
+    </button>
+    <button class="nav-btn" data-screen="likes" onclick="navTo('likes')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+      歌單
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ========== Mock song database ==========
+// Each song has tags. Recommendation = tag overlap.
+const SONGS = [
+  // Mando-pop ballads
+  { id:'gbqq',  title:'告白氣球', artist:'周杰倫', year:2016, c1:'#FFB7C5', c2:'#FFE4B5',
+    tags:['romantic','mid-tempo','piano','mandopop','sweet','acoustic'] },
+  { id:'shbk',  title:'說好不哭', artist:'周杰倫 feat. 阿信', year:2019, c1:'#C7B8FF', c2:'#9DC8FF',
+    tags:['romantic','slow','piano','mandopop','sad','jay'] },
+  { id:'qlx',   title:'七里香', artist:'周杰倫', year:2004, c1:'#A8E6A1', c2:'#F8E58C',
+    tags:['nostalgic','mid-tempo','guitar','mandopop','summery','jay'] },
+  { id:'dx',    title:'稻香', artist:'周杰倫', year:2008, c1:'#F4D374', c2:'#E8B14B',
+    tags:['warm','mid-tempo','guitar','mandopop','folk','jay','hopeful'] },
+  { id:'yq',    title:'夜曲', artist:'周杰倫', year:2005, c1:'#3C2A5C', c2:'#7A5BA8',
+    tags:['dark','mid-tempo','piano','mandopop','rnb','jay','sad'] },
+
+  // Mayday
+  { id:'jq',    title:'倔強', artist:'五月天', year:2004, c1:'#FF6B6B', c2:'#FFD93D',
+    tags:['anthemic','fast','rock','mandopop','hopeful','guitar'] },
+  { id:'thxn',  title:'突然好想你', artist:'五月天', year:2008, c1:'#7DA9E6', c2:'#C7DDF5',
+    tags:['nostalgic','slow','rock','mandopop','sad','guitar','ballad'] },
+  { id:'lai',   title:'戀愛ing', artist:'五月天', year:2005, c1:'#FFB7C5', c2:'#FFEB94',
+    tags:['romantic','fast','rock','mandopop','sweet','happy','guitar'] },
+  { id:'hldwm', title:'後來的我們', artist:'五月天', year:2016, c1:'#9FB8E0', c2:'#D4C5F9',
+    tags:['nostalgic','slow','rock','mandopop','sad','ballad','piano'] },
+
+  // JJ Lin
+  { id:'jn',    title:'江南', artist:'林俊傑', year:2004, c1:'#A8D8B9', c2:'#F4E4A8',
+    tags:['nostalgic','mid-tempo','piano','mandopop','sad','ballad'] },
+  { id:'xliq',  title:'修煉愛情', artist:'林俊傑', year:2013, c1:'#E8B7D9', c2:'#C5A3DA',
+    tags:['romantic','slow','piano','mandopop','ballad','sad'] },
+  { id:'bwsmz', title:'不為誰而作的歌', artist:'林俊傑', year:2015, c1:'#7B92BF', c2:'#B8C5D9',
+    tags:['emotional','slow','piano','mandopop','ballad','sad'] },
+
+  // Female mandopop
+  { id:'xxy',   title:'小幸運', artist:'田馥甄', year:2015, c1:'#F8D9C2', c2:'#E8C5D9',
+    tags:['nostalgic','slow','piano','mandopop','sweet','ballad','female'] },
+  { id:'gnzw',  title:'光年之外', artist:'鄧紫棋', year:2016, c1:'#1A2540', c2:'#5C7AB8',
+    tags:['epic','mid-tempo','piano','mandopop','female','dramatic','sad'] },
+  { id:'pm',    title:'泡沫', artist:'鄧紫棋', year:2012, c1:'#A8C5E8', c2:'#D9E5F2',
+    tags:['emotional','slow','piano','mandopop','female','sad','ballad'] },
+  { id:'mgsn',  title:'玫瑰少年', artist:'蔡依林', year:2018, c1:'#E84A8F', c2:'#F4B7C5',
+    tags:['anthemic','fast','electronic','mandopop','female','dramatic'] },
+
+  // Western pop / ballad
+  { id:'love',  title:'Love Story', artist:'Taylor Swift', year:2008, c1:'#F4C5A3', c2:'#E8A8C5',
+    tags:['romantic','mid-tempo','guitar','western','pop','sweet','female'] },
+  { id:'card',  title:'Cardigan', artist:'Taylor Swift', year:2020, c1:'#7A6B5C', c2:'#C5B8A3',
+    tags:['nostalgic','slow','piano','western','female','indie','sad'] },
+  { id:'ahero', title:'Anti-Hero', artist:'Taylor Swift', year:2022, c1:'#D9B5A8', c2:'#A8B5D9',
+    tags:['mid-tempo','synth','western','pop','female','introspective'] },
+  { id:'aug',   title:'August', artist:'Taylor Swift', year:2020, c1:'#F4D374', c2:'#E8C5A8',
+    tags:['summery','mid-tempo','guitar','western','female','indie','nostalgic'] },
+  { id:'hello', title:'Hello', artist:'Adele', year:2015, c1:'#2A2A3C', c2:'#7A6BA8',
+    tags:['epic','slow','piano','western','female','dramatic','sad','ballad'] },
+  { id:'sl',    title:'Someone Like You', artist:'Adele', year:2011, c1:'#5C5C7A', c2:'#A8A8C5',
+    tags:['emotional','slow','piano','western','female','sad','ballad'] },
+  { id:'eom',   title:'Easy On Me', artist:'Adele', year:2021, c1:'#C5A8A3', c2:'#E8C5B7',
+    tags:['emotional','slow','piano','western','female','sad','ballad'] },
+  { id:'perf',  title:'Perfect', artist:'Ed Sheeran', year:2017, c1:'#C5D9A8', c2:'#F4E4A8',
+    tags:['romantic','slow','guitar','western','sweet','acoustic','ballad'] },
+  { id:'photo', title:'Photograph', artist:'Ed Sheeran', year:2014, c1:'#A8B5D9', c2:'#D9C5A8',
+    tags:['nostalgic','slow','guitar','western','sad','acoustic','ballad'] },
+  { id:'sio',   title:'Shape of You', artist:'Ed Sheeran', year:2017, c1:'#E84A8F', c2:'#F4D374',
+    tags:['fast','electronic','western','pop','dance','rnb'] },
+
+  // Billie / Weeknd / dark pop
+  { id:'oce',   title:'Ocean Eyes', artist:'Billie Eilish', year:2016, c1:'#5C7AB8', c2:'#A8C5E8',
+    tags:['dreamy','slow','synth','western','female','sad','indie'] },
+  { id:'whim',  title:'What Was I Made For?', artist:'Billie Eilish', year:2023, c1:'#F4C5D9', c2:'#D9C5E8',
+    tags:['emotional','slow','piano','western','female','sad','introspective'] },
+  { id:'blnd',  title:'Blinding Lights', artist:'The Weeknd', year:2019, c1:'#E84A4A', c2:'#F4A83C',
+    tags:['fast','synth','western','pop','dance','retro','energetic'] },
+  { id:'syt',   title:'Save Your Tears', artist:'The Weeknd', year:2020, c1:'#7A5BA8', c2:'#E8A8C5',
+    tags:['mid-tempo','synth','western','pop','retro','sad'] },
+
+  // Shiao / classic
+  { id:'wf',    title:'王妃', artist:'蕭敬騰', year:2008, c1:'#3C2A5C', c2:'#A85BA8',
+    tags:['dramatic','mid-tempo','rock','mandopop','dark','epic'] },
+
+  // ===== more mandopop classics & indie =====
+  { id:'sx',    title:'晴天', artist:'周杰倫', year:2003, c1:'#A8D8E8', c2:'#F4E8C5',
+    tags:['nostalgic','mid-tempo','guitar','mandopop','summery','jay','sweet','acoustic'] },
+  { id:'qhc',   title:'青花瓷', artist:'周杰倫', year:2007, c1:'#E0EFF8', c2:'#A8C5D9',
+    tags:['nostalgic','mid-tempo','mandopop','jay','dreamy','acoustic'] },
+  { id:'fbsl',  title:'髮如雪', artist:'周杰倫', year:2005, c1:'#5C7AB8', c2:'#D9C5E8',
+    tags:['dramatic','mid-tempo','mandopop','jay','epic','dark'] },
+  { id:'rsh',   title:'人生海海', artist:'五月天', year:2001, c1:'#5C7AB8', c2:'#A8D8B9',
+    tags:['hopeful','mid-tempo','rock','mandopop','anthemic','guitar'] },
+  { id:'zhide', title:'知足', artist:'五月天', year:2005, c1:'#F4E0C5', c2:'#A8C5E8',
+    tags:['hopeful','slow','rock','mandopop','ballad','warm','guitar'] },
+  { id:'nbh',   title:'你,好不好?', artist:'周興哲', year:2017, c1:'#D9C5E8', c2:'#A8B5D9',
+    tags:['romantic','slow','piano','mandopop','sad','ballad','male'] },
+  { id:'yg',    title:'洋蔥', artist:'楊宗緯', year:2009, c1:'#7A6BA8', c2:'#C5A8D9',
+    tags:['emotional','slow','piano','mandopop','sad','ballad','male'] },
+  { id:'xqg',   title:'小情歌', artist:'蘇打綠', year:2006, c1:'#C5E0F4', c2:'#F4E0C5',
+    tags:['sweet','mid-tempo','guitar','mandopop','indie','sad','acoustic'] },
+  { id:'wybd',  title:'無與倫比的美麗', artist:'蘇打綠', year:2007, c1:'#E8C5D9', c2:'#A8D8E8',
+    tags:['dreamy','mid-tempo','mandopop','indie','sweet','romantic','introspective'] },
+  { id:'lxdyy', title:'旅行的意義', artist:'陳綺貞', year:2004, c1:'#F4E8C5', c2:'#C5D9C5',
+    tags:['dreamy','slow','guitar','mandopop','indie','female','acoustic','introspective'] },
+  { id:'yz',    title:'魚仔', artist:'盧廣仲', year:2017, c1:'#F4D374', c2:'#A8D8B9',
+    tags:['warm','mid-tempo','guitar','mandopop','folk','hopeful','acoustic','happy'] },
+  { id:'llrl',  title:'浪流連', artist:'茄子蛋', year:2017, c1:'#C5A876', c2:'#7A6B5C',
+    tags:['nostalgic','mid-tempo','guitar','mandopop','indie','rock','warm'] },
+  { id:'arcg',  title:'愛人錯過', artist:'告五人', year:2019, c1:'#E8B7D9', c2:'#A8C5E8',
+    tags:['romantic','mid-tempo','guitar','mandopop','indie','sad','female','dreamy'] },
+  { id:'mj',    title:'My Jinji', artist:'落日飛車', year:2016, c1:'#C5A8D9', c2:'#F4C5A3',
+    tags:['dreamy','mid-tempo','guitar','mandopop','indie','retro','chill'] },
+  { id:'mt',    title:'模特', artist:'李榮浩', year:2013, c1:'#7A6B5C', c2:'#C5B8A3',
+    tags:['introspective','slow','guitar','mandopop','indie','male','ballad'] },
+  { id:'hsh',   title:'還是會', artist:'韋禮安', year:2010, c1:'#A8B5D9', c2:'#E8C5D9',
+    tags:['romantic','slow','piano','mandopop','sad','ballad','male','acoustic'] },
+  { id:'qnzl',  title:'千年之戀', artist:'信樂團', year:2003, c1:'#3C2A5C', c2:'#A85BA8',
+    tags:['dramatic','mid-tempo','rock','mandopop','epic','anthemic'] },
+  { id:'sldyl', title:'死了都要愛', artist:'信樂團', year:2002, c1:'#E84A4A', c2:'#3C2A5C',
+    tags:['dramatic','fast','rock','mandopop','epic','anthemic','powerful','energetic'] },
+  { id:'yyx',   title:'遇見', artist:'孫燕姿', year:2003, c1:'#F4E0C5', c2:'#E8C5D9',
+    tags:['sweet','mid-tempo','piano','mandopop','female','ballad','romantic'] },
+  { id:'hsgxx', title:'紅色高跟鞋', artist:'蔡健雅', year:2007, c1:'#E84A4A', c2:'#F4D374',
+    tags:['mid-tempo','guitar','mandopop','female','sweet','warm'] },
+  { id:'lrqg',  title:'浪人情歌', artist:'伍佰', year:1994, c1:'#7A6B5C', c2:'#A85BA8',
+    tags:['nostalgic','mid-tempo','rock','mandopop','sad','retro','male'] },
+  { id:'dxxa',  title:'大城小愛', artist:'王力宏', year:2005, c1:'#F4D374', c2:'#E8B7D9',
+    tags:['romantic','mid-tempo','mandopop','sweet','male','pop'] },
+  { id:'awht',  title:'愛我還是他', artist:'陶喆', year:2002, c1:'#3C2A5C', c2:'#7A5BA8',
+    tags:['emotional','mid-tempo','rnb','mandopop','sad','male'] },
+
+  // ===== more western pop / ballad =====
+  { id:'jtwy',  title:'Just the Way You Are', artist:'Bruno Mars', year:2010, c1:'#F4C5A3', c2:'#FFE4B5',
+    tags:['romantic','mid-tempo','western','pop','sweet','male','happy'] },
+  { id:'yel',   title:'Yellow', artist:'Coldplay', year:2000, c1:'#F4D374', c2:'#1A2540',
+    tags:['dreamy','mid-tempo','guitar','western','indie','romantic','rock'] },
+  { id:'fyy',   title:'Fix You', artist:'Coldplay', year:2005, c1:'#7A6BA8', c2:'#A8C5E8',
+    tags:['emotional','slow','piano','western','ballad','sad','epic','dramatic'] },
+  { id:'vvl',   title:'Viva la Vida', artist:'Coldplay', year:2008, c1:'#E84A4A', c2:'#F4D374',
+    tags:['anthemic','mid-tempo','western','epic','dramatic','rock'] },
+  { id:'bvr',   title:'Believer', artist:'Imagine Dragons', year:2017, c1:'#3C2A5C', c2:'#E84A4A',
+    tags:['fast','rock','western','energetic','anthemic','powerful','male'] },
+  { id:'sts',   title:'Summertime Sadness', artist:'Lana Del Rey', year:2012, c1:'#5C7AB8', c2:'#A85BA8',
+    tags:['mid-tempo','synth','western','dreamy','sad','female','retro','indie'] },
+  { id:'vgm',   title:'Video Games', artist:'Lana Del Rey', year:2011, c1:'#7A5BA8', c2:'#C5A8D9',
+    tags:['slow','piano','western','sad','female','dreamy','retro','introspective','indie'] },
+  { id:'roy',   title:'Royals', artist:'Lorde', year:2013, c1:'#3C2A5C', c2:'#7A6B5C',
+    tags:['mid-tempo','synth','western','indie','female','introspective','minimal'] },
+  { id:'dl',    title:'drivers license', artist:'Olivia Rodrigo', year:2021, c1:'#A8B5D9', c2:'#E8C5D9',
+    tags:['slow','piano','western','sad','female','ballad','emotional','introspective'] },
+  { id:'aiw',   title:'As It Was', artist:'Harry Styles', year:2022, c1:'#E8A8C5', c2:'#F4E0C5',
+    tags:['mid-tempo','synth','western','pop','retro','male','introspective'] },
+  { id:'lev',   title:'Levitating', artist:'Dua Lipa', year:2020, c1:'#E84A8F', c2:'#F4A83C',
+    tags:['fast','electronic','western','pop','dance','female','retro','energetic','happy'] },
+  { id:'swm',   title:'Stay With Me', artist:'Sam Smith', year:2014, c1:'#A8A8C5', c2:'#7A6BA8',
+    tags:['slow','piano','western','sad','ballad','emotional','male'] },
+  { id:'chnd',  title:'Chandelier', artist:'Sia', year:2014, c1:'#F4E0C5', c2:'#7A5BA8',
+    tags:['mid-tempo','electronic','western','female','dramatic','emotional','powerful','dance'] },
+  { id:'syl',   title:'Someone You Loved', artist:'Lewis Capaldi', year:2018, c1:'#5C5C7A', c2:'#A8B5D9',
+    tags:['slow','piano','western','sad','ballad','male','emotional'] },
+  { id:'bsp',   title:'Best Part', artist:'Daniel Caesar feat. H.E.R.', year:2017, c1:'#C5A8D9', c2:'#F4C5A3',
+    tags:['slow','guitar','western','rnb','romantic','sweet','chill','acoustic'] },
+  { id:'lost',  title:'Lost', artist:'Frank Ocean', year:2012, c1:'#5C7AB8', c2:'#7A6B5C',
+    tags:['mid-tempo','rnb','western','chill','introspective','male','dreamy'] },
+  { id:'circ',  title:'Circles', artist:'Post Malone', year:2019, c1:'#E8C5A8', c2:'#A85BA8',
+    tags:['mid-tempo','pop','western','retro','male','dreamy','synth'] },
+  { id:'sty',   title:'Stay', artist:'The Kid LAROI & Justin Bieber', year:2021, c1:'#5C7AB8', c2:'#E84A4A',
+    tags:['fast','electronic','western','pop','energetic','male','emotional'] },
+  { id:'tom',   title:'Take On Me', artist:'a-ha', year:1985, c1:'#1A2540', c2:'#A85BA8',
+    tags:['fast','synth','western','retro','energetic','dance','pop','male'] },
+  { id:'yor',   title:'Yesterday Once More', artist:'Carpenters', year:1973, c1:'#F4E0C5', c2:'#E8C5A8',
+    tags:['slow','piano','western','nostalgic','female','retro','sweet','ballad'] },
+  { id:'drm',   title:'Dreams', artist:'Fleetwood Mac', year:1977, c1:'#E8C5A8', c2:'#7A6BA8',
+    tags:['mid-tempo','western','retro','female','rock','dreamy','indie','chill'] },
+  { id:'tdcr',  title:'Tiny Dancer', artist:'Elton John', year:1971, c1:'#F4D374', c2:'#A8B5D9',
+    tags:['mid-tempo','piano','western','retro','male','warm','ballad','nostalgic'] },
+  { id:'iwa',   title:'I Will Always Love You', artist:'Whitney Houston', year:1992, c1:'#A85BA8', c2:'#F4C5D9',
+    tags:['slow','piano','western','female','epic','dramatic','ballad','emotional'] },
+
+  // ===== K-pop =====
+  { id:'spd',   title:'Spring Day', artist:'BTS', year:2017, c1:'#F4E0C5', c2:'#A8D8E8',
+    tags:['mid-tempo','kpop','sad','hopeful','emotional','male','ballad','dreamy','nostalgic'] },
+  { id:'dyn',   title:'Dynamite', artist:'BTS', year:2020, c1:'#F4A83C', c2:'#E84A8F',
+    tags:['fast','electronic','kpop','dance','retro','happy','energetic','male'] },
+  { id:'btr',   title:'Butter', artist:'BTS', year:2021, c1:'#F4D374', c2:'#E8A8C5',
+    tags:['mid-tempo','electronic','kpop','dance','retro','male','chill'] },
+  { id:'hylt',  title:'How You Like That', artist:'BLACKPINK', year:2020, c1:'#E84A8F', c2:'#1A2540',
+    tags:['fast','electronic','kpop','dance','female','energetic','anthemic','powerful'] },
+  { id:'pv',    title:'Pink Venom', artist:'BLACKPINK', year:2022, c1:'#E84A8F', c2:'#3C2A5C',
+    tags:['fast','electronic','kpop','dance','female','energetic','anthemic','powerful','dark'] },
+  { id:'ttn',   title:'Through the Night', artist:'IU', year:2017, c1:'#A8B5D9', c2:'#1A2540',
+    tags:['slow','piano','kpop','sad','female','ballad','emotional','dreamy'] },
+  { id:'bl',    title:'Blueming', artist:'IU', year:2019, c1:'#5DCAA5', c2:'#F4E0C5',
+    tags:['mid-tempo','guitar','kpop','sweet','female','happy','warm'] },
+  { id:'hyp',   title:'Hype Boy', artist:'NewJeans', year:2022, c1:'#E8A8C5', c2:'#A8C5E8',
+    tags:['mid-tempo','electronic','kpop','dance','female','retro','chill','sweet'] },
+  { id:'ssh',   title:'Super Shy', artist:'NewJeans', year:2023, c1:'#A8C5E8', c2:'#F4E0C5',
+    tags:['mid-tempo','electronic','kpop','dance','female','sweet','happy','chill'] },
+  { id:'ntl',   title:'Next Level', artist:'aespa', year:2021, c1:'#E84A8F', c2:'#1A2540',
+    tags:['fast','electronic','kpop','dance','female','energetic','powerful'] },
+  { id:'tmb',   title:'Tomboy', artist:'(G)I-DLE', year:2022, c1:'#E84A4A', c2:'#3C2A5C',
+    tags:['fast','rock','kpop','female','anthemic','energetic','powerful'] },
+
+  // ===== J-pop =====
+  { id:'ynk',   title:'夜に駆ける', artist:'YOASOBI', year:2019, c1:'#E84A8F', c2:'#A85BA8',
+    tags:['fast','electronic','jpop','energetic','dramatic','female','dance'] },
+  { id:'idol',  title:'Idol', artist:'YOASOBI', year:2023, c1:'#E84A8F', c2:'#F4D374',
+    tags:['fast','electronic','jpop','dance','dramatic','female','energetic','anthemic'] },
+  { id:'byh',   title:'白日', artist:'King Gnu', year:2019, c1:'#5C5C7A', c2:'#C5C5D9',
+    tags:['mid-tempo','rock','jpop','dramatic','emotional','male','epic'] },
+  { id:'pre',   title:'Pretender', artist:'Official髭男dism', year:2019, c1:'#E8C5D9', c2:'#A8B5D9',
+    tags:['mid-tempo','piano','jpop','romantic','sad','male','ballad','emotional'] },
+  { id:'lem',   title:'Lemon', artist:'米津玄師', year:2018, c1:'#F4E8A8', c2:'#A8C5D9',
+    tags:['slow','piano','jpop','sad','emotional','ballad','male','introspective'] },
+  { id:'kbk',   title:'KICK BACK', artist:'米津玄師', year:2022, c1:'#E84A4A', c2:'#F4A83C',
+    tags:['fast','rock','jpop','energetic','dramatic','male','powerful'] },
+  { id:'aim',   title:'残響散歌', artist:'Aimer', year:2021, c1:'#3C2A5C', c2:'#E84A4A',
+    tags:['mid-tempo','rock','jpop','dramatic','female','anthemic','epic','powerful'] },
+  { id:'tnt',   title:'天体観測', artist:'BUMP OF CHICKEN', year:2001, c1:'#1A2540', c2:'#5DCAA5',
+    tags:['mid-tempo','rock','jpop','hopeful','indie','male','guitar','retro'] },
+  { id:'fy',    title:'First Love', artist:'宇多田ヒカル', year:1999, c1:'#A8B5D9', c2:'#E8C5D9',
+    tags:['slow','piano','jpop','sad','female','ballad','emotional','romantic','retro'] },
+
+  // ===== 陳奕迅 =====
+  { id:'snp',   title:'十年', artist:'陳奕迅', year:2003, c1:'#A8B5D9', c2:'#5C5C7A',
+    tags:['sad','slow','piano','mandopop','nostalgic','ballad','male','emotional'] },
+  { id:'fjs',   title:'富士山下', artist:'陳奕迅', year:2005, c1:'#5C7AB8', c2:'#A8D8E8',
+    tags:['romantic','mid-tempo','piano','mandopop','male','ballad','dramatic'] },
+  { id:'fk',    title:'浮誇', artist:'陳奕迅', year:2005, c1:'#F4A83C', c2:'#E84A4A',
+    tags:['dramatic','fast','rock','mandopop','anthemic','male','emotional','powerful'] },
+
+  // ===== More Jay Chou =====
+  { id:'jjda',  title:'簡單愛', artist:'周杰倫', year:2001, c1:'#A8D8B9', c2:'#F4E8C5',
+    tags:['sweet','mid-tempo','guitar','mandopop','folk','jay','happy','acoustic'] },
+  { id:'jqhc',  title:'菊花台', artist:'周杰倫', year:2006, c1:'#E8C5D9', c2:'#7A5BA8',
+    tags:['sad','slow','piano','mandopop','dramatic','jay','ballad'] },
+  { id:'nxzy',  title:'你好嗎', artist:'周興哲', year:2021, c1:'#A8C5E8', c2:'#D9C5E8',
+    tags:['sad','slow','piano','mandopop','ballad','male','emotional'] },
+
+  // ===== More 五月天 =====
+  { id:'wr',    title:'溫柔', artist:'五月天', year:1999, c1:'#A8D8E8', c2:'#C5E0F4',
+    tags:['romantic','slow','rock','mandopop','ballad','male','sweet'] },
+  { id:'nbszqdkl', title:'你不是真正的快樂', artist:'五月天', year:2013, c1:'#7A6BA8', c2:'#A8B5D9',
+    tags:['sad','slow','rock','mandopop','ballad','emotional','introspective'] },
+
+  // ===== More female mandopop =====
+  { id:'yhbjzpy', title:'以後別做朋友', artist:'周興哲', year:2017, c1:'#5C7AB8', c2:'#A8B5D9',
+    tags:['sad','slow','piano','mandopop','ballad','male','emotional'] },
+  { id:'wrywa',  title:'我不想', artist:'魏如萱', year:2014, c1:'#E8C5D9', c2:'#C5A8D9',
+    tags:['dreamy','slow','acoustic','mandopop','female','indie','introspective','sad'] },
+
+  // ===== More K-pop =====
+  { id:'twfs',  title:'Feel Special', artist:'TWICE', year:2019, c1:'#E8A8C5', c2:'#F4E0C5',
+    tags:['mid-tempo','electronic','kpop','sweet','female','hopeful','happy'] },
+  { id:'btsdna', title:'DNA', artist:'BTS', year:2017, c1:'#F4D374', c2:'#E84A8F',
+    tags:['fast','electronic','kpop','dance','energetic','male','retro','happy'] },
+  { id:'skm',   title:'MIROH', artist:'Stray Kids', year:2019, c1:'#E84A4A', c2:'#3C2A5C',
+    tags:['fast','rock','kpop','anthemic','male','energetic','powerful','dramatic'] },
+  { id:'iu3',   title:'LILAC', artist:'IU', year:2021, c1:'#C5A8D9', c2:'#F4E0C5',
+    tags:['mid-tempo','pop','kpop','female','sweet','hopeful','warm','nostalgic'] },
+  { id:'nj2',   title:'Ditto', artist:'NewJeans', year:2022, c1:'#F4E0C5', c2:'#A8C5D9',
+    tags:['mid-tempo','electronic','kpop','chill','female','nostalgic','dreamy','sweet'] },
+
+  // ===== More J-pop =====
+  { id:'yama',  title:'春を告げる', artist:'yama', year:2020, c1:'#F4E8C5', c2:'#A8D8B9',
+    tags:['mid-tempo','acoustic','jpop','emotional','male','indie','sad','introspective'] },
+  { id:'kbtm',  title:'怪物', artist:'YOASOBI', year:2021, c1:'#3C2A5C', c2:'#E84A4A',
+    tags:['fast','electronic','jpop','dramatic','powerful','female','anthemic'] },
+
+  // ===== More Western =====
+  { id:'cls',   title:'Cruel Summer', artist:'Taylor Swift', year:2019, c1:'#F4D374', c2:'#E8A8C5',
+    tags:['fast','synth','western','pop','female','energetic','retro','happy'] },
+  { id:'bgu',   title:'Bad Guy', artist:'Billie Eilish', year:2019, c1:'#1A2540', c2:'#F4D374',
+    tags:['mid-tempo','electronic','western','female','dark','indie','chill'] },
+  { id:'sunf',  title:'Sunflower', artist:'Post Malone & Swae Lee', year:2018, c1:'#F4D374', c2:'#A8D8B9',
+    tags:['mid-tempo','pop','western','chill','sweet','male','acoustic','happy'] },
+  { id:'dnst',  title:"Don't Start Now", artist:'Dua Lipa', year:2019, c1:'#E84A8F', c2:'#5C7AB8',
+    tags:['fast','electronic','western','pop','dance','female','retro','energetic'] },
+  { id:'wms',   title:'Watermelon Sugar', artist:'Harry Styles', year:2020, c1:'#E8C5A8', c2:'#F4D374',
+    tags:['mid-tempo','pop','western','male','happy','summery','retro'] },
+  { id:'uf',    title:'Uptown Funk', artist:'Bruno Mars & Mark Ronson', year:2014, c1:'#F4A83C', c2:'#E84A4A',
+    tags:['fast','electronic','western','dance','energetic','retro','pop','male','happy'] },
+  { id:'tsci',  title:'The Scientist', artist:'Coldplay', year:2002, c1:'#A8B5D9', c2:'#D9E8F4',
+    tags:['slow','piano','western','sad','male','indie','ballad','emotional','nostalgic'] },
+];
+
+const TAG_LABEL = {
+  'romantic': '同樣浪漫', 'sad': '都是傷感的', 'sweet': '甜甜的氛圍',
+  'slow': '同樣慢板', 'mid-tempo': '中速節奏', 'fast': '節奏更快',
+  'piano': '鋼琴主導', 'guitar': '吉他主導', 'synth': '合成器氛圍', 'electronic': '電子製作',
+  'acoustic': '原聲質感', 'rock': '搖滾編制', 'rnb': 'R&B 質感', 'pop': '流行感',
+  'mandopop': '華語流行', 'western': '西洋作品', 'kpop': '韓系流行', 'jpop': '日系流行',
+  'nostalgic': '懷舊氣味', 'warm': '溫暖質感', 'dark': '陰鬱氣味', 'dreamy': '夢幻感',
+  'epic': '史詩感', 'anthemic': '熱血燃曲', 'introspective': '內省風格',
+  'hopeful': '正向希望', 'happy': '歡快情緒', 'summery': '夏天感', 'folk': '民謠味',
+  'ballad': '抒情曲式', 'female': '女聲', 'male': '男聲', 'jay': '同創作人',
+  'dramatic': '戲劇張力', 'retro': '復古質感', 'indie': '獨立風格',
+  'energetic': '能量強烈', 'dance': '舞曲節奏', 'emotional': '情緒濃烈',
+  'chill': '放鬆氛圍', 'powerful': '張力強烈', 'minimal': '極簡編曲',
+};
+
+// ========== App state ==========
+const state = {
+  seed: null,
+  queue: [],
+  history: [],
+  liked: [],            // {id, score} — persisted to localStorage
+  saved: [],
+  similarity: 60,       // 0 = very similar, 100 = exploratory
+  langFilter: 'all',    // 'all' | 'mandopop' | 'western' | 'kpop' | 'jpop'
+  isPlaying: false,
+  playProgress: 0,
+  playTimer: null,
+  daily: { date: '', count: 0, bonus: 0 }, // loaded on init
+};
+
+// ========== localStorage persistence ==========
+function saveLiked() {
+  try { localStorage.setItem('tuige_liked', JSON.stringify(state.liked)); } catch(e) {}
+}
+function loadLiked() {
+  try {
+    const raw = localStorage.getItem('tuige_liked');
+    if (raw) state.liked = JSON.parse(raw);
+  } catch(e) {}
+}
+
+// ========== Daily limit ==========
+const DAILY_BASE = 50;
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+}
+function loadDaily() {
+  try {
+    const raw = localStorage.getItem('tuige_daily');
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d.date === todayStr()) return d;
+    }
+  } catch(e) {}
+  return { date: todayStr(), count: 0, bonus: 0 };
+}
+function saveDaily() {
+  try { localStorage.setItem('tuige_daily', JSON.stringify(state.daily)); } catch(e) {}
+}
+function dailyLimit() { return DAILY_BASE; }
+function dailyRemaining() { return Math.max(0, dailyLimit() - state.daily.count); }
+
+function updateDailyUI() {
+  const pill = document.getElementById('daily-pill');
+  const fill = document.getElementById('dp-fill');
+  const text = document.getElementById('dp-text');
+  if (!pill) return;
+  const remaining = dailyRemaining();
+  const limit = dailyLimit();
+  const pct = Math.min(100, (state.daily.count / limit) * 100);
+  fill.style.width = pct + '%';
+  text.textContent = `剩 ${remaining} 首`;
+  pill.classList.toggle('warn', remaining <= 10 && remaining > 0);
+  pill.classList.toggle('full', remaining === 0);
+}
+
+// ====== 每日上限提示彈窗(無廣告,純柔性訊息) ======
+function showAdOverlay() {
+  stopFakePlay();
+  document.getElementById('ad-overlay').classList.add('open');
+}
+function closeLimitOverlay() {
+  document.getElementById('ad-overlay').classList.remove('open');
+}
+
+// ========== Recommendation logic ==========
+function similarity(seedTags, songTags) {
+  const a = new Set(seedTags);
+  const b = new Set(songTags);
+  const overlap = [...a].filter(t => b.has(t));
+  const union = new Set([...a, ...b]);
+  return { score: overlap.length / union.size, shared: overlap };
+}
+
+function rebuildQueue() {
+  if (!state.seed) return;
+  const seed = SONGS.find(s => s.id === state.seed);
+  if (!seed) return;
+  const seen = new Set(state.history);
+  seen.add(seed.id);
+  state.liked.forEach(l => seen.add(l.id)); // never re-recommend liked songs
+
+  // Similarity slider: 0=最相似, 100=最探索
+  // Map to a minimum threshold: slider 0→min 0.45, slider 100→min 0.10
+  const minThreshold = 0.45 - (state.similarity / 100) * 0.35;
+
+  const seedArtistBase = seed.artist.split(' ')[0]; // e.g. "周杰倫 feat. 阿信" → "周杰倫"
+
+  const candidates = SONGS
+    .filter(s => {
+      if (seen.has(s.id)) return false;
+      // Language filter
+      if (state.langFilter !== 'all' && !s.tags.includes(state.langFilter)) return false;
+      return true;
+    })
+    .map(s => {
+      const sim = similarity(seed.tags, s.tags);
+      // Below threshold: heavily penalised
+      const thresholdPenalty = sim.score < minThreshold
+        ? (sim.score - minThreshold) * 2   // negative bonus pulls score down
+        : 0;
+      // Exploration bonus: when slider is high, reward songs NOT already heard often
+      const explorationBonus = (state.similarity / 100) * (1 - sim.score) * 0.3;
+      // Same-artist penalty: push same-artist songs down to keep variety
+      const sameArtist = s.artist.includes(seedArtistBase) || seedArtistBase.includes(s.artist.split(' ')[0]);
+      const artistPenalty = sameArtist ? 0.18 : 0;
+      const adjScore = sim.score + thresholdPenalty + explorationBonus - artistPenalty + Math.random() * 0.04;
+      return { song: s, sim, adjScore, sameArtist };
+    })
+    .sort((a, b) => b.adjScore - a.adjScore);
+
+  // Hard cap: at most 2 same-artist songs in the queue
+  const queue = [];
+  let sameArtistCount = 0;
+  for (const c of candidates) {
+    if (queue.length >= 10) break;
+    if (c.sameArtist) {
+      if (sameArtistCount >= 2) continue;
+      sameArtistCount++;
+    }
+    queue.push(c.song.id);
+  }
+  state.queue = queue;
+}
+
+function topThreeTags(seed, song) {
+  const sim = similarity(seed.tags, song.tags);
+  const priority = ['jay','female','male','rock','rnb','synth','piano','guitar','electronic',
+    'romantic','sad','sweet','dark','dreamy','epic','anthemic','nostalgic','warm','introspective','dramatic','powerful','chill',
+    'slow','mid-tempo','fast','ballad','folk','indie','retro','minimal',
+    'mandopop','western','kpop','jpop','pop','acoustic','hopeful','happy','summery','energetic','dance','emotional'];
+  const ordered = priority.filter(t => sim.shared.includes(t));
+  return { tags: ordered.slice(0,3), score: sim.score };
+}
+
+// ========== Render: home ==========
+function renderHome() {
+  const grid = document.getElementById('seed-grid');
+  // Shuffle all songs and pick 6 different ones every time
+  const shuffled = [...SONGS].sort(() => Math.random() - 0.5).slice(0, 6);
+  grid.innerHTML = shuffled.map(s => `
+    <button class="seed-card" onclick="setSeed('${s.id}')">
+      <div class="seed-cover" id="sc-${s.id}" style="background: linear-gradient(135deg, ${s.c1}, ${s.c2});">
+        <div class="play-pill"></div>
+      </div>
+      <div class="seed-title">${s.title}</div>
+      <div class="seed-artist">${s.artist}</div>
+    </button>
+  `).join('');
+  // Lazy-load real artwork for seed cards
+  shuffled.forEach(s => {
+    loadArtwork(s, document.getElementById(`sc-${s.id}`));
+  });
+}
+
+// search
+document.getElementById('search-input').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) { renderHome(); return; }
+  const matches = SONGS.filter(s =>
+    s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q)
+  ).slice(0, 8);
+  const grid = document.getElementById('seed-grid');
+  if (matches.length === 0) {
+    grid.innerHTML = `<div style="grid-column: 1/-1; padding: 24px; text-align: center; color: var(--text-3); font-size: 13px;">沒找到。先從下面的熱門種子開始?</div>`;
+    return;
+  }
+  grid.innerHTML = matches.map(s => `
+    <button class="seed-card" onclick="setSeed('${s.id}')">
+      <div class="seed-cover" id="sc-${s.id}" style="background: linear-gradient(135deg, ${s.c1}, ${s.c2});">
+        <div class="play-pill"></div>
+      </div>
+      <div class="seed-title">${s.title}</div>
+      <div class="seed-artist">${s.artist}</div>
+    </button>
+  `).join('');
+  matches.forEach(s => loadArtwork(s, document.getElementById(`sc-${s.id}`)));
+});
+
+// ========== Seed flow ==========
+let pendingSeedId = null;
+let seedPlayTimer = null;
+let seedIsPlaying = false;
+let seedVisualElapsed = 0;   // tracks visual fallback position for resume
+let seedUsingAudio = false;  // true = real audio; false = visual fallback
+
+function setSeed(id) {
+  pendingSeedId = id;
+  const s = SONGS.find(x => x.id === id);
+
+  // Fill sheet UI — reset artwork first so old image doesn't flash.
+  // Use the shorthand alone: it overwrites any previous backgroundImage,
+  // and clearing it after would wipe the gradient too.
+  const spCover = document.getElementById('sp-cover');
+  spCover.style.background = `linear-gradient(135deg, ${s.c1}, ${s.c2})`;
+  document.getElementById('sp-title').textContent = s.title;
+  document.getElementById('sp-artist').textContent = `${s.artist} · ${s.year}`;
+  document.getElementById('sp-bar').style.width = '0%';
+  document.getElementById('sp-ts').textContent = '0:00 / 0:30';
+
+  // Open sheet
+  document.getElementById('seed-preview-backdrop').classList.add('open');
+  document.getElementById('seed-preview-sheet').classList.add('open');
+
+  // Show CTA immediately
+  const readyLabel = document.getElementById('sp-ready-label');
+  const confirmBtn = document.getElementById('sp-confirm-btn');
+  requestAnimationFrame(() => {
+    readyLabel.classList.add('show');
+    confirmBtn.classList.add('show');
+  });
+
+  // Start playing the seed song preview
+  startSeedPlay(s);
+}
+
+// shared "ready" flag so we only show CTA once per seed session
+let seedReadyShown = false;
+function seedScheduleReady() {
+  if (seedReadyShown) return;
+  seedReadyShown = true;
+  document.getElementById('sp-ready-label').classList.add('show');
+  document.getElementById('sp-confirm-btn').classList.add('show');
+}
+
+async function startSeedPlay(song) {
+  // Full start: fetch URL, reset position
+  _seedPauseInternal();          // stop any running timer/audio first
+  seedIsPlaying = true;
+  seedVisualElapsed = 0;
+  seedUsingAudio = false;
+  seedReadyShown = true; // CTA already shown by openSeedPreview
+
+  const btn = document.getElementById('sp-play-btn');
+  if (btn) btn.classList.add('playing');
+
+  const { previewUrl: url, artworkUrl } = await fetchSongData(song);
+  if (!seedIsPlaying || pendingSeedId !== song.id) return;
+
+  // Apply real album art(用 loadArtwork 才有 600→100 的 fallback)
+  loadArtwork(song, document.getElementById('sp-cover'));
+
+  if (url) {
+    audio.src = url;
+    audio.currentTime = 0;
+    audio.ontimeupdate = () => {
+      if (pendingSeedId !== song.id) return;
+      const t = audio.currentTime;
+      const d = audio.duration || 30;
+      _seedUpdateUI(t, d);
+      if (t >= 4) seedScheduleReady();
+    };
+    try {
+      await audio.play();
+      seedUsingAudio = true;
+      return;
+    } catch (e) { /* autoplay blocked */ }
+  }
+
+  // Visual fallback
+  _seedStartVisualTimer();
+}
+
+function _seedStartVisualTimer() {
+  seedUsingAudio = false;
+  seedPlayTimer = setInterval(() => {
+    if (!seedIsPlaying) return;
+    seedVisualElapsed += 0.1;  // 0.1 per 100ms = real-time
+    if (seedVisualElapsed >= 30) seedVisualElapsed = 0;
+    _seedUpdateUI(seedVisualElapsed, 30);
+    if (seedVisualElapsed >= 4) seedScheduleReady();
+  }, 100);
+}
+
+function _seedUpdateUI(t, d) {
+  const bar = document.getElementById('sp-bar');
+  const ts = document.getElementById('sp-ts');
+  if (bar) bar.style.width = (t / d * 100) + '%';
+  if (ts) ts.textContent = `${formatTime(t)} / ${formatTime(Math.floor(d))}`;
+}
+
+// Internal: stop timer/audio without wiping state
+function _seedPauseInternal() {
+  try { audio.pause(); } catch(e) {}
+  audio.ontimeupdate = null;
+  if (seedPlayTimer) { clearInterval(seedPlayTimer); seedPlayTimer = null; }
+}
+
+function toggleSeedPlay() {
+  const btn = document.getElementById('sp-play-btn');
+  if (seedIsPlaying) {
+    // → PAUSE
+    seedIsPlaying = false;
+    _seedPauseInternal();
+    if (btn) btn.classList.remove('playing');
+  } else {
+    // → RESUME from current position
+    seedIsPlaying = true;
+    if (btn) btn.classList.add('playing');
+    if (seedUsingAudio && audio.src) {
+      // resume real audio from where it was
+      audio.play().catch(() => {
+        // if audio lost, fall back to visual from current position
+        seedUsingAudio = false;
+        _seedStartVisualTimer();
+      });
+      // re-attach ontimeupdate
+      const songId = pendingSeedId;
+      audio.ontimeupdate = () => {
+        if (pendingSeedId !== songId) return;
+        const t = audio.currentTime;
+        const d = audio.duration || 30;
+        _seedUpdateUI(t, d);
+        if (t >= 4) seedScheduleReady();
+      };
+    } else {
+      // resume visual timer from seedVisualElapsed
+      _seedStartVisualTimer();
+    }
+  }
+}
+
+function stopSeedPlay() {
+  seedIsPlaying = false;
+  _seedPauseInternal();
+  const btn = document.getElementById('sp-play-btn');
+  if (btn) btn.classList.remove('playing');
+}
+
+function closeSeedPreview() {
+  stopSeedPlay();
+  pendingSeedId = null;
+  seedReadyShown = false;
+  document.getElementById('seed-preview-backdrop').classList.remove('open');
+  document.getElementById('seed-preview-sheet').classList.remove('open');
+}
+
+function confirmSeed() {
+  const id = pendingSeedId;
+  closeSeedPreview();
+  state.seed = id;
+  state.history = [];
+  rebuildQueue();
+  const s = SONGS.find(x => x.id === id);
+  document.getElementById('seed-pill-name').textContent = `${s.title} · ${s.artist}`;
+  navTo('discover'); // navTo already calls renderStack() internally
+}
+
+function goHome() {
+  navTo('home');
+}
+
+// ========== Render: discover ==========
+function renderStack() {
+  const stack = document.getElementById('stack');
+  stack.innerHTML = '';
+  if (state.queue.length === 0) {
+    stack.innerHTML = `
+      <div class="empty-state">
+        <div class="big">這條推薦線已經逛完了</div>
+        <div>調整一下「相似度」或回首頁挑新的種子歌</div>
+      </div>`;
+    updateQueueUI();
+    return;
+  }
+  // Ghost card underneath for stack visual — no song content, just a shadow layer
+  if (state.queue.length > 1) {
+    const ghost = document.createElement('div');
+    ghost.className = 'card';
+    ghost.style.zIndex = '9';
+    ghost.style.transform = 'scale(0.97) translateY(8px)';
+    ghost.style.pointerEvents = 'none';
+    ghost.style.background = 'var(--surface-2)';
+    ghost.innerHTML = '<div style="flex:1;border-radius:inherit;"></div><div style="height:100px;"></div>';
+    stack.appendChild(ghost);
+  }
+
+  // Only render the single top card — prevents flash of wrong song on re-sort
+  const seed = SONGS.find(x => x.id === state.seed);
+  const songId = state.queue[0];
+  const song = SONGS.find(x => x.id === songId);
+  if (song) {
+    const { tags, score } = topThreeTags(seed, song);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.zIndex = '10';
+    card.dataset.songId = song.id;
+    card.innerHTML = `
+      <div class="card-cover" id="cc-${song.id}" style="background: linear-gradient(135deg, ${song.c1}, ${song.c2});">
+        <div class="swipe-hint like">喜歡</div>
+        <div class="swipe-hint skip">跳過</div>
+        <div class="play-btn" onclick="event.stopPropagation(); togglePlay(this)"></div>
+        <div class="timestamp" data-ts>0:00 / 0:30</div>
+        <div class="progress"><div class="progress-bar" data-bar></div></div>
+      </div>
+      <div class="card-info">
+        <div class="song-title">${song.title}</div>
+        <div class="song-meta">${song.artist} · ${song.year}</div>
+        <div class="why">
+          <div class="why-label">為什麼推這首</div>
+          <div class="why-tags">
+            ${tags.map(t => `<span class="why-tag">${TAG_LABEL[t] || t}</span>`).join('')}
+          </div>
+          <div class="why-meter">
+            <div class="bar"><div class="bar-fill" style="width:${Math.round(score*100)}%"></div></div>
+            <div class="pct">${Math.round(score*100)}% 相似</div>
+          </div>
+        </div>
+      </div>
+    `;
+    stack.appendChild(card);
+    attachSwipe(card);
+    loadArtwork(song, document.getElementById(`cc-${song.id}`));
+  }
+  startFakePlay();
+  updateQueueUI();
+}
+
+function updateQueueUI() {
+  document.getElementById('queue-stats').textContent =
+    `已聽 ${state.history.length} · 喜歡 ${state.liked.length}`;
+  if (state.queue.length === 0) {
+    document.getElementById('queue-label').textContent = '快滑完了…';
+  } else {
+    document.getElementById('queue-label').textContent = '';
+  }
+}
+
+// ========== Swipe ==========
+let drag = null;
+
+// Document-level listeners set up ONCE — no leak
+document.addEventListener('mousemove', (e) => {
+  if (!drag) return;
+  const p = e;
+  drag.dx = p.clientX - drag.startX;
+  drag.dy = p.clientY - drag.startY;
+  const rot = drag.dx / 18;
+  drag.card.style.transform = `translate(${drag.dx}px, ${drag.dy*0.5}px) rotate(${rot}deg)`;
+  const likeHint = drag.card.querySelector('.swipe-hint.like');
+  const skipHint = drag.card.querySelector('.swipe-hint.skip');
+  if (likeHint) likeHint.style.opacity = Math.max(0, drag.dx / 90);
+  if (skipHint) skipHint.style.opacity = Math.max(0, -drag.dx / 90);
+});
+document.addEventListener('touchmove', (e) => {
+  if (!drag) return;
+  const p = e.touches[0];
+  drag.dx = p.clientX - drag.startX;
+  drag.dy = p.clientY - drag.startY;
+  const rot = drag.dx / 18;
+  drag.card.style.transform = `translate(${drag.dx}px, ${drag.dy*0.5}px) rotate(${rot}deg)`;
+  const likeHint = drag.card.querySelector('.swipe-hint.like');
+  const skipHint = drag.card.querySelector('.swipe-hint.skip');
+  if (likeHint) likeHint.style.opacity = Math.max(0, drag.dx / 90);
+  if (skipHint) skipHint.style.opacity = Math.max(0, -drag.dx / 90);
+}, { passive: true });
+const _swipeEnd = () => {
+  if (!drag) return;
+  const threshold = 100;
+  if (drag.dx > threshold) finishSwipe('like');
+  else if (drag.dx < -threshold) finishSwipe('skip');
+  else {
+    drag.card.style.transform = '';
+    const likeHint = drag.card.querySelector('.swipe-hint.like');
+    const skipHint = drag.card.querySelector('.swipe-hint.skip');
+    if (likeHint) likeHint.style.opacity = 0;
+    if (skipHint) skipHint.style.opacity = 0;
+    drag.card.classList.remove('dragging');
+  }
+  drag = null;
+};
+document.addEventListener('mouseup', _swipeEnd);
+document.addEventListener('touchend', _swipeEnd);
+
+function attachSwipe(card) {
+  if (!card) return;
+  card.addEventListener('mousedown', (e) => {
+    drag = { startX: e.clientX, startY: e.clientY, dx: 0, dy: 0, card };
+    card.classList.add('dragging');
+  });
+  card.addEventListener('touchstart', (e) => {
+    const p = e.touches[0];
+    drag = { startX: p.clientX, startY: p.clientY, dx: 0, dy: 0, card };
+    card.classList.add('dragging');
+  }, { passive: true });
+}
+
+function finishSwipe(type) {
+  if (!drag) return;
+  const card = drag.card;
+  const dir = type === 'like' ? 1 : -1;
+  card.style.transform = `translate(${dir * 600}px, ${drag.dy}px) rotate(${dir * 35}deg)`;
+  card.style.opacity = 0;
+  const songId = card.dataset.songId;
+  setTimeout(() => {
+    advanceCard(type, songId);
+  }, 280);
+}
+
+function reactToCard(type) {
+  const stack = document.getElementById('stack');
+  const top = stack.lastElementChild;
+  if (!top || !top.dataset.songId) return;
+  const songId = top.dataset.songId;
+  if (type === 'like') {
+    top.style.transform = 'translate(600px, 0) rotate(35deg)';
+  } else if (type === 'skip') {
+    top.style.transform = 'translate(-600px, 0) rotate(-35deg)';
+  } else {
+    top.style.transform = 'translate(0, -600px)';
+  }
+  top.style.opacity = 0;
+  setTimeout(() => advanceCard(type, songId), 280);
+}
+
+function advanceCard(type, songId) {
+  const seed = SONGS.find(x => x.id === state.seed);
+  const song = SONGS.find(x => x.id === songId);
+  state.history.push(songId);
+  state.queue.shift();
+
+  // Record like/skip BEFORE the daily-limit check so a like that
+  // happens to be the day's last swipe is still saved.
+  if (type === 'like' && song) {
+    const { score } = topThreeTags(seed, song);
+    state.liked.push({ id: songId, score: Math.round(score * 100) });
+    saveLiked();
+    showToast(`已加入歌單 · ${song.title}`);
+    boostQueue(song.tags, +0.1);
+  } else if (type === 'skip' && song) {
+    showToast('已跳過');
+    boostQueue(song.tags, -0.06);
+  }
+
+  // Daily limit check
+  state.daily.count++;
+  saveDaily();
+  updateDailyUI();
+  if (dailyRemaining() === 0) {
+    renderStack(); // show empty / remaining cards first
+    setTimeout(() => showAdOverlay(), 320);
+    return;
+  }
+
+  // re-rank remaining
+  renderStack();
+}
+
+function boostQueue(tags, delta) {
+  const seed = SONGS.find(x => x.id === state.seed);
+  const seen = new Set([...state.history, seed.id, ...state.liked.map(l => l.id)]);
+  const minThreshold = 0.45 - (state.similarity / 100) * 0.35;
+  const seedArtistBase = seed.artist.split(' ')[0];
+
+  const candidates = SONGS
+    .filter(s => {
+      if (seen.has(s.id)) return false;
+      if (state.langFilter !== 'all' && !s.tags.includes(state.langFilter)) return false;
+      return true;
+    })
+    .map(s => {
+      const sim = similarity(seed.tags, s.tags);
+      const thresholdPenalty = sim.score < minThreshold ? (sim.score - minThreshold) * 2 : 0;
+      const explorationBonus = (state.similarity / 100) * (1 - sim.score) * 0.3;
+      const feedbackBonus = tags.filter(t => s.tags.includes(t)).length * delta;
+      const sameArtist = s.artist.includes(seedArtistBase) || seedArtistBase.includes(s.artist.split(' ')[0]);
+      const artistPenalty = sameArtist ? 0.18 : 0;
+      const adj = sim.score + thresholdPenalty + explorationBonus + feedbackBonus - artistPenalty + Math.random() * 0.04;
+      return { id: s.id, adj, sameArtist };
+    })
+    .sort((a,b) => b.adj - a.adj);
+
+  // Hard cap: at most 2 same-artist songs in the queue
+  const queue = [];
+  let sameArtistCount = 0;
+  for (const c of candidates) {
+    if (queue.length >= 10) break;
+    if (c.sameArtist) {
+      if (sameArtistCount >= 2) continue;
+      sameArtistCount++;
+    }
+    queue.push(c.id);
+  }
+  state.queue = queue;
+}
+
+// ========== Audio playback (iTunes Search API – 30s previews + artwork) ==========
+const audio = new Audio();
+audio.preload = 'metadata';
+audio.volume = 0.85;
+const songDataCache = {};
+
+// 用 timeout + AbortController 包 fetch,避免在慢網路上卡住整個 UI
+async function fetchWithTimeout(url, ms = 6000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, {
+      signal: ctrl.signal,
+      mode: 'cors',
+      credentials: 'omit',
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+async function fetchSongData(song) {
+  if (song.id in songDataCache) return songDataCache[song.id];
+
+  // 透過自家 /api/itunes 代理(後端會自動依序試 tw/jp/kr/us)
+  // 這邊只試兩種 query 變形,大幅降低請求量
+  const queryForms = [
+    `${song.title} ${song.artist}`,
+    song.title,
+  ];
+
+  let result = { previewUrl: null, artworkUrl: null };
+  let lastError = null;
+  for (const q of queryForms) {
+    try {
+      const data = await fetchWithTimeout(`/api/itunes?term=${encodeURIComponent(q)}`);
+      const r = data.results && data.results[0];
+      if (r && r.artworkUrl100) {
+        result = {
+          previewUrl: r.previewUrl || null,
+          artworkUrl: r.artworkUrl100.replace('100x100bb', '600x600bb'),
+        };
+        console.log(`[Vurv] artwork OK: ${song.title}`);
+        break;
+      }
+    } catch (e) { lastError = e; }
+  }
+  if (!result.artworkUrl) {
+    console.warn(`[Vurv] artwork FAIL: ${song.title} / ${song.artist}`, lastError);
+  }
+  songDataCache[song.id] = result;
+  return result;
+}
+
+// Thin wrapper for backwards-compat
+async function fetchPreview(song) {
+  return (await fetchSongData(song)).previewUrl;
+}
+
+// 套用封面到一個 element,內建「600x600 失敗就 fallback 到 100x100」
+function loadArtwork(song, coverEl) {
+  if (!coverEl) return;
+  fetchSongData(song).then(({ artworkUrl }) => {
+    if (!artworkUrl || !coverEl.isConnected) return;
+
+    const apply = (url) => {
+      if (!coverEl.isConnected) return;
+      coverEl.style.backgroundImage = `url('${url}')`;
+      coverEl.style.backgroundSize = 'cover';
+      coverEl.style.backgroundPosition = 'center';
+    };
+
+    // 先用 Image 物件預載入,確認真的能取到再套上去
+    const probe = new Image();
+    probe.onload = () => apply(artworkUrl);
+    probe.onerror = () => {
+      // 600x600 載失敗 → fallback 到 100x100(iTunes 一定有的尺寸)
+      const fallback = artworkUrl.replace('600x600bb', '100x100bb');
+      if (fallback === artworkUrl) return;
+      const probe2 = new Image();
+      probe2.onload = () => apply(fallback);
+      probe2.src = fallback;
+    };
+    probe.src = artworkUrl;
+  });
+}
+
+async function startFakePlay() {
+  stopFakePlay();
+  state.playProgress = 0;
+  state.isPlaying = true;
+  const stack = document.getElementById('stack');
+  const top = stack.lastElementChild;
+  if (!top) return;
+  const songId = top.dataset.songId;
+  const song = SONGS.find(s => s.id === songId);
+  if (!song) return;
+  const btn = top.querySelector('.play-btn');
+  if (btn) btn.classList.add('playing');
+
+  const url = await fetchPreview(song);
+
+  // Bail if the user already swiped to a different card or paused
+  const currentTop = document.querySelector('#stack .card:last-child');
+  if (!currentTop || currentTop.dataset.songId !== songId || !state.isPlaying) return;
+
+  if (url) {
+    audio.src = url;
+    audio.currentTime = 0;
+    audio.ontimeupdate = () => {
+      const t = audio.currentTime;
+      const d = audio.duration || 30;
+      const top = document.querySelector('#stack .card:last-child');
+      if (!top || top.dataset.songId !== songId) return;
+      const bar = top.querySelector('[data-bar]');
+      const ts = top.querySelector('[data-ts]');
+      if (bar) bar.style.width = (t / d * 100) + '%';
+      if (ts) ts.textContent = `${formatTime(t)} / ${formatTime(d)}`;
+    };
+    try {
+      await audio.play();
+      return;
+    } catch (e) {
+      // autoplay blocked — fall through to silent visual fallback
+    }
+  } else {
+    showToast('找不到試聽,顯示視覺進度');
+  }
+
+  // Visual fallback: animated progress bar with no sound (0.1 per 100ms = real-time 1x)
+  state.playTimer = setInterval(() => {
+    state.playProgress += 0.1;
+    if (state.playProgress >= 30) state.playProgress = 0;
+    const top = document.querySelector('#stack .card:last-child');
+    if (!top || top.dataset.songId !== songId) return;
+    const bar = top.querySelector('[data-bar]');
+    const ts = top.querySelector('[data-ts]');
+    if (bar) bar.style.width = (state.playProgress / 30 * 100) + '%';
+    if (ts) ts.textContent = `${formatTime(state.playProgress)} / 0:30`;
+  }, 100);
+}
+
+function stopFakePlay() {
+  state.isPlaying = false;
+  try { audio.pause(); } catch(e) {}
+  audio.ontimeupdate = null;
+  if (state.playTimer) { clearInterval(state.playTimer); state.playTimer = null; }
+}
+
+function togglePlay(btn) {
+  if (state.isPlaying) {
+    // → PAUSE: keep audio position, stop all update sources
+    state.isPlaying = false;
+    try { audio.pause(); } catch(e) {}
+    audio.ontimeupdate = null;
+    if (state.playTimer) { clearInterval(state.playTimer); state.playTimer = null; }
+    btn.classList.remove('playing');
+  } else {
+    // → RESUME from current position
+    state.isPlaying = true;
+    btn.classList.add('playing');
+    const stack = document.getElementById('stack');
+    const top = stack ? stack.lastElementChild : null;
+    const songId = top ? top.dataset.songId : null;
+
+    if (audio.src && audio.paused && !audio.ended) {
+      // real audio — just resume
+      audio.play().catch(() => _resumeCardVisual(songId));
+      audio.ontimeupdate = () => {
+        const t = audio.currentTime;
+        const d = audio.duration || 30;
+        const cur = document.querySelector('#stack .card:last-child');
+        if (!cur || cur.dataset.songId !== songId) return;
+        const bar = cur.querySelector('[data-bar]');
+        const ts  = cur.querySelector('[data-ts]');
+        if (bar) bar.style.width = (t / d * 100) + '%';
+        if (ts)  ts.textContent = `${formatTime(t)} / ${formatTime(d)}`;
+      };
+    } else {
+      _resumeCardVisual(songId);
+    }
+  }
+}
+
+function _resumeCardVisual(songId) {
+  state.playTimer = setInterval(() => {
+    if (!state.isPlaying) return;
+    state.playProgress += 0.1;
+    if (state.playProgress >= 30) state.playProgress = 0;
+    const cur = document.querySelector('#stack .card:last-child');
+    if (!cur || cur.dataset.songId !== songId) return;
+    const bar = cur.querySelector('[data-bar]');
+    const ts  = cur.querySelector('[data-ts]');
+    if (bar) bar.style.width = (state.playProgress / 30 * 100) + '%';
+    if (ts)  ts.textContent = `${formatTime(state.playProgress)} / 0:30`;
+  }, 100);
+}
+function formatTime(s) {
+  s = Math.floor(s);
+  return `0:${s.toString().padStart(2,'0')}`;
+}
+
+// ========== Likes ==========
+function renderLikes() {
+  const list = document.getElementById('liked-list');
+  const empty = document.getElementById('empty-likes');
+  if (state.liked.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  const reversed = state.liked.slice().reverse().filter(l => SONGS.find(x => x.id === l.id));
+  list.innerHTML = reversed.map(l => {
+    const s = SONGS.find(x => x.id === l.id);
+    return `
+      <div class="liked-item" onclick="openStreamSheet('${s.id}')">
+        <div class="liked-cover" id="lc-${s.id}" style="background: linear-gradient(135deg, ${s.c1}, ${s.c2});"></div>
+        <div class="liked-info">
+          <div class="liked-title">${s.title}</div>
+          <div class="liked-artist">${s.artist} · ${s.year}</div>
+        </div>
+        <div class="liked-pct" style="display:flex;align-items:center;gap:6px;">
+          <span>${l.score}%</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <button class="liked-delete" onclick="event.stopPropagation(); removeLiked('${s.id}')" title="從歌單移除">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    `;
+  }).join('');
+  // Lazy-load artwork for liked items
+  reversed.forEach(l => {
+    const s = SONGS.find(x => x.id === l.id);
+    if (s) loadArtwork(s, document.getElementById(`lc-${s.id}`));
+  });
+}
+
+function removeLiked(songId) {
+  state.liked = state.liked.filter(l => l.id !== songId);
+  saveLiked();
+  const song = SONGS.find(x => x.id === songId);
+  showToast(`已從歌單移除 · ${song ? song.title : ''}`);
+  renderLikes();
+}
+
+// ========== Streaming Sheet ==========
+const STREAMING_SERVICES = [
+  { name: 'Spotify',       icon: '🎧', color: '#1DB954', bg: '#1DB95415',
+    url: q => `https://open.spotify.com/search/${encodeURIComponent(q)}` },
+  { name: 'Apple Music',   icon: '🎵', color: '#fc3c44', bg: '#fc3c4415',
+    url: q => `https://music.apple.com/search?term=${encodeURIComponent(q)}` },
+  { name: 'YouTube Music', icon: '▶️', color: '#FF0000', bg: '#FF000015',
+    url: q => `https://music.youtube.com/search?q=${encodeURIComponent(q)}` },
+  { name: 'KKBOX',         icon: '🎶', color: '#009de0', bg: '#009de015',
+    url: q => `https://www.kkbox.com/tw/tc/search.php?word=${encodeURIComponent(q)}` },
+];
+
+function openStreamSheet(songId) {
+  const s = SONGS.find(x => x.id === songId);
+  if (!s) return;
+  const streamCover = document.getElementById('stream-cover');
+  streamCover.style.backgroundImage = '';  // clear previous artwork first
+  streamCover.style.background = `linear-gradient(135deg, ${s.c1}, ${s.c2})`;
+  loadArtwork(s, streamCover);  // async: overwrites gradient when ready
+  document.getElementById('stream-title').textContent = s.title;
+  document.getElementById('stream-artist').textContent = `${s.artist} · ${s.year}`;
+
+  const q = `${s.title} ${s.artist}`;
+  document.getElementById('stream-btns').innerHTML = STREAMING_SERVICES.map(svc => `
+    <a class="stream-btn" href="${svc.url(q)}" target="_blank" rel="noopener" onclick="closeStreamSheet()">
+      <div class="svc-icon" style="background:${svc.bg}; color:${svc.color};">${svc.icon}</div>
+      <div class="svc-name">${svc.name}</div>
+      <div class="svc-arrow">→</div>
+    </a>
+  `).join('');
+
+  document.getElementById('stream-backdrop').classList.add('open');
+  document.getElementById('stream-sheet').classList.add('open');
+}
+
+function closeStreamSheet() {
+  document.getElementById('stream-backdrop').classList.remove('open');
+  document.getElementById('stream-sheet').classList.remove('open');
+}
+
+// ========== Nav ==========
+function navTo(name) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-screen="${name}"]`)?.classList.add('active');
+  if (name === 'discover') {
+    if (!state.seed) navTo('home');
+    else { renderStack(); updateDailyUI(); }
+  } else if (name === 'likes') {
+    stopFakePlay();
+    renderLikes();
+  } else if (name === 'home') {
+    stopFakePlay();
+    stopSeedPlay();
+  }
+}
+
+// ========== Settings sheet ==========
+function openSettings() {
+  document.getElementById('sheet-backdrop').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('sheet-backdrop').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+  rebuildQueue();
+  if (document.getElementById('screen-discover').classList.contains('active')) {
+    renderStack();
+  }
+}
+// ========== Volume ==========
+const volSlider = document.getElementById('vol-slider');
+const volVal    = document.getElementById('vol-val');
+(function initVolume() {
+  const saved = parseFloat(localStorage.getItem('tuige_volume'));
+  const v = isNaN(saved) ? 85 : saved;
+  volSlider.value = v;
+  volVal.textContent = v + '%';
+  audio.volume = v / 100;
+})();
+volSlider.addEventListener('input', e => {
+  const v = +e.target.value;
+  volVal.textContent = v + '%';
+  audio.volume = v / 100;
+  try { localStorage.setItem('tuige_volume', v); } catch(e) {}
+});
+
+// ========== Dark / Light mode ==========
+function applyTheme() {
+  const checked = document.getElementById('dark-toggle').checked;
+  const html = document.documentElement;
+  html.classList.remove('force-dark', 'force-light');
+  if (checked) {
+    html.classList.add('force-dark');
+    document.getElementById('theme-hint').textContent = '深色模式開啟';
+    try { localStorage.setItem('tuige_theme', 'dark'); } catch(e) {}
+  } else {
+    html.classList.add('force-light');
+    document.getElementById('theme-hint').textContent = '淺色模式開啟';
+    try { localStorage.setItem('tuige_theme', 'light'); } catch(e) {}
+  }
+}
+(function initTheme() {
+  const saved = localStorage.getItem('tuige_theme');
+  const toggle = document.getElementById('dark-toggle');
+  const html = document.documentElement;
+  if (saved === 'dark') {
+    toggle.checked = true;
+    html.classList.add('force-dark');
+    document.getElementById('theme-hint').textContent = '深色模式開啟';
+  } else if (saved === 'light') {
+    toggle.checked = false;
+    html.classList.add('force-light');
+    document.getElementById('theme-hint').textContent = '淺色模式開啟';
+  } else {
+    // No saved preference → follow system, but make the toggle reflect
+    // the actual rendered theme so it isn't desynced from the UI.
+    const prefersDark = window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
+    toggle.checked = prefersDark;
+    document.getElementById('theme-hint').textContent = '跟隨系統';
+  }
+})();
+
+const simSlider = document.getElementById('sim-slider');
+const simLabelEl = document.getElementById('sim-val');
+function _simLabel(v) {
+  return v < 25 ? '很貼近' : v < 50 ? '偏相似' : v < 75 ? '中等' : '偏探索';
+}
+(function initSimilarity() {
+  const saved = parseFloat(localStorage.getItem('tuige_similarity'));
+  if (!isNaN(saved) && saved >= 0 && saved <= 100) {
+    state.similarity = saved;
+    simSlider.value = saved;
+  }
+  simLabelEl.textContent = _simLabel(state.similarity);
+})();
+simSlider.addEventListener('input', e => {
+  state.similarity = +e.target.value;
+  simLabelEl.textContent = _simLabel(state.similarity);
+  try { localStorage.setItem('tuige_similarity', state.similarity); } catch(e) {}
+});
+
+// Language filter chips
+document.getElementById('lang-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  if (chip.dataset.lang === state.langFilter) return; // no-op if unchanged
+  document.querySelectorAll('#lang-chips .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  state.langFilter = chip.dataset.lang;
+  // Rebuild immediately so the user can see the filter take effect
+  // even before the settings sheet is closed.
+  if (state.seed) {
+    rebuildQueue();
+    if (document.getElementById('screen-discover').classList.contains('active')) {
+      renderStack();
+    }
+  }
+});
+
+// ========== Toast ==========
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 1600);
+}
+
+// init
+loadLiked();
+state.daily = loadDaily();
+renderHome();
+</script>
+
+</body>
+</html>

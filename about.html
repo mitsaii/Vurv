@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>關於 Vurv — 從一首歌開始的音樂探索</title>
+<meta name="description" content="Vurv 是一個從一首你喜歡的歌開始,幫你發現新音樂的網頁應用。本頁說明為什麼我們做 Vurv、和主流串流推薦演算法的差異、以及我們相信的音樂探索哲學。" />
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4668297380257099"
+        crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --surface: #ffffff;
+    --text: #1a1a1a;
+    --text-muted: #6b6b6b;
+    --text-2: #8a8580;
+    --border: #e5e3de;
+    --accent: #d96e3a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    padding: 40px 20px 80px;
+  }
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--surface);
+    padding: 48px 40px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+  header {
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--accent);
+  }
+  h1 { font-size: 32px; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .subtitle { color: var(--text-muted); font-size: 16px; }
+  h2 {
+    font-size: 22px;
+    margin: 36px 0 14px;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+  }
+  h3 {
+    font-size: 17px;
+    margin: 24px 0 8px;
+    color: var(--text);
+  }
+  p { margin-bottom: 14px; color: #2a2a2a; font-size: 16px; }
+  blockquote {
+    margin: 16px 0;
+    padding: 12px 18px;
+    border-left: 3px solid var(--accent);
+    background: #faf6f1;
+    color: #4a4540;
+    font-style: italic;
+  }
+  ul { margin: 8px 0 16px 22px; }
+  li { margin-bottom: 8px; }
+  a { color: var(--accent); }
+  .nav-back {
+    display: inline-block;
+    margin-top: 36px;
+    padding: 10px 22px;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .other-pages {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .other-pages a {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .other-pages a:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>關於 Vurv</h1>
+      <div class="subtitle">從一首歌開始的音樂探索</div>
+    </header>
+
+    <h2>為什麼做 Vurv</h2>
+    <p>我做 Vurv 是因為,作為一個會在 Spotify 上聽歌十幾年的使用者,我發現一件事:**主流串流的推薦演算法越來越懶**。它知道你聽什麼,然後用協同過濾(collaborative filtering)告訴你「跟你有相同品味的人也在聽 X」,於是大家最後都收斂到同樣那批熱門歌。</p>
+    <p>這個方法本身沒錯,但對「我今天就只是想找到下一首跟這首很像的歌」這種具體的需求,它表現得很糟。Spotify 的「Song Radio」會給你五花八門的選擇,跑題跑得很遠;Apple Music 的「Station」更像是隨機抽樣。這兩者都假設你想要「類似氣氛」,但**氣氛是模糊的**。</p>
+    <p>Vurv 想做的事很簡單:**從你給的一首歌出發,精準地、一首一首地往外延伸**。每一首推薦都應該有理由 — 這首和你選的種子歌共享什麼特質?是相似的旋律走向?同樣的編制配器?類似的情緒?還是節奏型態接近?Vurv 會告訴你。</p>
+
+    <h2>我相信什麼</h2>
+
+    <h3>音樂發現是一個對話,不是一份點菜單</h3>
+    <p>大部分串流推薦把使用者當成「品味資料庫的一個座標」,然後丟給你座標附近的東西。Vurv 反過來:你滑卡片的每一個動作 — 喜歡、跳過、停留多久、按播放鍵幾次 — 都是在和系統對話,告訴它你今天想往哪個方向走。同樣一首種子歌,你今天可能想要往內省、慢板的方向走;明天可能想要往躁動、大編制的方向走。Vurv 應該跟得上。</p>
+
+    <h3>解釋比準確度更重要</h3>
+    <p>我寧願 Vurv 推薦的歌只有 70% 命中率,但每一首都能告訴你「為什麼推這首」(共享了哪些 tag、相似度幾分、為什麼比上一首更接近你),也不要 90% 命中率但你完全不知道演算法在想什麼。**黑箱推薦會讓人疲乏**,因為你失去了學習自己品味的機會。</p>
+
+    <h3>音樂庫不應該越用越窄</h3>
+    <p>很多串流的推薦會讓你越聽越收斂 — 你按了喜歡某首歌之後,系統會更頻繁地推類似的東西,最後你的播放清單變成單一風格的回音室。Vurv 內建一個「探索程度」滑桿,你可以隨時調整:0 是「給我跟種子歌幾乎一樣的東西」,100 是「跨類型給我意外的連結」。**音樂探索應該由你決定步伐**,不是被演算法決定。</p>
+
+    <h2>跟 Spotify、Apple Music 推薦的關鍵差異</h2>
+    <ul>
+      <li><strong>Vurv 用 tag-based,不是 collaborative filtering。</strong>每首歌標註 5~12 個音樂特徵 tag(編制、情緒、節奏、年代、地區、子類型等),用 Jaccard 相似度算重疊度。沒有「跟你有相同品味的人」這個假設。</li>
+      <li><strong>每張卡片有「為什麼推」說明。</strong>你看得到這首跟種子歌共享哪三個 tag、相似度幾分。沒有黑箱。</li>
+      <li><strong>探索程度可控。</strong>滑桿從「最相似」到「最探索」實時調整,不需要切換 mode 或設定。</li>
+      <li><strong>不會綁定你的音樂帳號。</strong>Vurv 不要求你登入 Spotify 或 Apple Music,所有偏好都存在你的瀏覽器本機,清掉就重來。</li>
+      <li><strong>不會試圖播完一整張專輯給你。</strong>Vurv 的單位是「一首歌」,你可以從第三首跳走,Vurv 不會生氣。</li>
+    </ul>
+
+    <h2>Vurv 的限制(誠實說)</h2>
+    <p>Vurv 目前的歌曲庫由人工挑選,大概 200 多首,涵蓋華語、英語、日韓的流行、獨立、電子、爵士、嘻哈等類型。這比 Spotify 的 1 億首少很多 — 但也因為手選,**每一首歌的 tag 都是被仔細想過的**,不是用 audio analysis API 自動產的。對於「精準找下一首像這首的歌」這個任務,小而精的庫其實表現比想像中更好。</p>
+    <p>未來會做什麼:擴充歌庫到 1000+ 首、加入「跨種子推薦」(同時餵兩首歌看交集)、加入用戶自己貢獻 tag 的功能。如果你有想加的歌,直接在隱私權頁面找到我的 email 寄給我。</p>
+
+    <h2>聯絡</h2>
+    <p>Vurv 是一人開發的個人專案。有任何回饋、bug 報告、想法,寫信給我:<a href="mailto:mitsai0701@gmail.com">mitsai0701@gmail.com</a></p>
+
+    <a href="/" class="nav-back">← 開始用 Vurv</a>
+
+    <div class="other-pages">
+      <a href="/how-it-works">推薦原理</a>
+      <a href="/privacy">隱私權政策</a>
+    </div>
+  </div>
+</body>
+</html>
