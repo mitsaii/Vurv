@@ -1123,11 +1123,86 @@
     transform: translateX(20px);
     background: #fff;
   }
+
+  /* ── Splash Screen ── */
+  #splash {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+  #splash.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #splash-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .splash-logo-icon {
+    animation: splashIconIn 0.50s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both;
+  }
+  @keyframes splashIconIn {
+    from { opacity: 0; transform: scale(0.35) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  #splash-word {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 5px;
+    color: var(--primary);
+    animation: splashFadeUp 0.35s ease-out 0.55s both;
+  }
+  #splash-tagline {
+    font-size: 13px;
+    color: var(--text-3);
+    letter-spacing: 0.3px;
+    animation: splashFadeUp 0.35s ease-out 0.88s both;
+  }
+  @keyframes splashFadeUp {
+    from { opacity: 0; transform: translateY(7px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Mood filter chips ── */
+  #mood-chips .chip[data-mood] { font-size: 13px; }
 </style>
 </head>
 <body>
 
 <div class="app">
+
+  <!-- SPLASH -->
+  <div id="splash">
+    <div id="splash-inner">
+      <div class="splash-logo-icon">
+        <svg width="72" height="72" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sg" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#534AB7"/>
+              <stop offset="100%" stop-color="#4B9EE8"/>
+            </linearGradient>
+          </defs>
+          <path d="M9 30 Q2 45 9 58" stroke="#534AB7" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.45"/>
+          <path d="M4 20 Q-5 45 4 68" stroke="#534AB7" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.22"/>
+          <path d="M91 30 Q98 45 91 58" stroke="#4B9EE8" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.45"/>
+          <path d="M96 20 Q105 45 96 68" stroke="#4B9EE8" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.22"/>
+          <path d="M16 18 L50 78 L84 18" stroke="url(#sg)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="50" cy="79" r="4" fill="url(#sg)" opacity="0.7"/>
+        </svg>
+      </div>
+      <div id="splash-word">VURV</div>
+      <div id="splash-tagline">找到你的下一首歌</div>
+    </div>
+  </div>
 
   <!-- HOME / COLD START -->
   <div class="screen active" id="screen-home">
@@ -1297,6 +1372,22 @@
         <button class="chip" data-lang="western">西洋</button>
         <button class="chip" data-lang="kpop">K-Pop</button>
         <button class="chip" data-lang="jpop">J-Pop</button>
+      </div>
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-label">
+        <span class="key">心情偏好</span>
+      </div>
+      <div class="filter-chips" id="mood-chips">
+        <button class="chip active" data-mood="all">全部</button>
+        <button class="chip" data-mood="romantic">💕 浪漫</button>
+        <button class="chip" data-mood="sad">😢 悲傷</button>
+        <button class="chip" data-mood="nostalgic">🌅 懷舊</button>
+        <button class="chip" data-mood="happy">😊 開心</button>
+        <button class="chip" data-mood="dreamy">✨ 夢幻</button>
+        <button class="chip" data-mood="anthemic">🔥 燃燒</button>
+        <button class="chip" data-mood="chill">🌿 放鬆</button>
       </div>
     </div>
 
@@ -1563,6 +1654,8 @@ const SONGS = [
     tags:['mid-tempo','rock','jpop','hopeful','indie','male','guitar','retro'] },
   { id:'fy',    title:'First Love', artist:'宇多田ヒカル', year:1999, c1:'#A8B5D9', c2:'#E8C5D9',
     tags:['slow','piano','jpop','sad','female','ballad','emotional','romantic','retro'] },
+  { id:'mem',   title:'memories', artist:'大槻真希', year:2000, c1:'#F0C896', c2:'#7BA9C7',
+    tags:['mid-tempo','guitar','jpop','nostalgic','female','emotional','ballad','retro','hopeful'] },
 
   // ===== 陳奕迅 =====
   { id:'snp',   title:'十年', artist:'陳奕迅', year:2003, c1:'#A8B5D9', c2:'#5C5C7A',
@@ -1651,6 +1744,7 @@ const state = {
   saved: [],
   similarity: 60,       // 0 = very similar, 100 = exploratory
   langFilter: 'all',    // 'all' | 'mandopop' | 'western' | 'kpop' | 'jpop'
+  moodFilter: 'all',    // 'all' | 'romantic' | 'sad' | 'nostalgic' | 'happy' | 'dreamy' | 'anthemic' | 'chill'
   isPlaying: false,
   playProgress: 0,
   playTimer: null,
@@ -1741,6 +1835,8 @@ function rebuildQueue() {
       if (seen.has(s.id)) return false;
       // Language filter
       if (state.langFilter !== 'all' && !s.tags.includes(state.langFilter)) return false;
+      // Mood filter
+      if (state.moodFilter !== 'all' && !s.tags.includes(state.moodFilter)) return false;
       return true;
     })
     .map(s => {
@@ -2654,10 +2750,36 @@ function showToast(msg) {
   showToast._t = setTimeout(() => t.classList.remove('show'), 1600);
 }
 
+// Mood filter chips
+document.getElementById('mood-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  if (chip.dataset.mood === state.moodFilter) return;
+  document.querySelectorAll('#mood-chips .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  state.moodFilter = chip.dataset.mood;
+  if (state.seed) {
+    rebuildQueue();
+    if (document.getElementById('screen-discover').classList.contains('active')) {
+      renderStack();
+    }
+  }
+});
+
 // init
 loadLiked();
 state.daily = loadDaily();
 renderHome();
+
+// Splash: fade out after 2 s
+(function initSplash() {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  setTimeout(() => {
+    splash.classList.add('hidden');
+    setTimeout(() => { if (splash.parentNode) splash.remove(); }, 420);
+  }, 2000);
+})();
 </script>
 
 </body>
