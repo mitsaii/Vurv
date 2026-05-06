@@ -1344,7 +1344,7 @@
   </div>
 
   <!-- SETTINGS SHEET -->
-  <div class="sheet-backdrop" id="sheet-backdrop" onclick="closeSettings()"></div>
+  <div class="sheet-backdrop" id="sheet-backdrop" onclick="cancelSettings()"></div>
   <div class="sheet" id="sheet">
     <div class="sheet-handle"></div>
     <h3>調整推薦的味道</h3>
@@ -2644,11 +2644,29 @@ function navTo(name) {
 }
 
 // ========== Settings sheet ==========
+// 暫存篩選值，按套用才真正寫入 state
+let _pendingLang = 'all';
+let _pendingMood = 'all';
+
 function openSettings() {
+  // 開啟時把目前 state 複製進 pending，chips 只改 pending
+  _pendingLang = state.langFilter;
+  _pendingMood = state.moodFilter;
   document.getElementById('sheet-backdrop').classList.add('open');
   document.getElementById('sheet').classList.add('open');
 }
+
+function cancelSettings() {
+  // 點 backdrop（取消）→ 把 chips 還原成 state 現有值，不套用
+  document.getElementById('sheet-backdrop').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+  _syncChipsToState();
+}
+
 function closeSettings() {
+  // 按套用 → 把 pending 寫入 state 再重建
+  state.langFilter = _pendingLang;
+  state.moodFilter = _pendingMood;
   document.getElementById('sheet-backdrop').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
   rebuildQueue();
@@ -2656,6 +2674,13 @@ function closeSettings() {
   if (document.getElementById('screen-discover').classList.contains('active')) {
     renderStack();
   }
+}
+
+function _syncChipsToState() {
+  document.querySelectorAll('#lang-chips .chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.lang === state.langFilter));
+  document.querySelectorAll('#mood-chips .chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.mood === state.moodFilter));
 }
 // ========== Volume ==========
 const volSlider = document.getElementById('vol-slider');
@@ -2730,15 +2755,14 @@ simSlider.addEventListener('input', e => {
   try { localStorage.setItem('tuige_similarity', state.similarity); } catch(e) {}
 });
 
-// Language filter chips
+// Language filter chips — 只更新 pending，不動 state
 document.getElementById('lang-chips').addEventListener('click', e => {
   const chip = e.target.closest('.chip');
   if (!chip) return;
-  if (chip.dataset.lang === state.langFilter) return;
+  if (chip.dataset.lang === _pendingLang) return;
   document.querySelectorAll('#lang-chips .chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
-  state.langFilter = chip.dataset.lang;
-  // 實際重建在按「套用」關閉 sheet 時才觸發 (closeSettings → rebuildQueue)
+  _pendingLang = chip.dataset.lang;
 });
 
 // ========== Toast ==========
@@ -2750,15 +2774,14 @@ function showToast(msg) {
   showToast._t = setTimeout(() => t.classList.remove('show'), 1600);
 }
 
-// Mood filter chips
+// Mood filter chips — 只更新 pending，不動 state
 document.getElementById('mood-chips').addEventListener('click', e => {
   const chip = e.target.closest('.chip');
   if (!chip) return;
-  if (chip.dataset.mood === state.moodFilter) return;
+  if (chip.dataset.mood === _pendingMood) return;
   document.querySelectorAll('#mood-chips .chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
-  state.moodFilter = chip.dataset.mood;
-  // 實際重建在按「套用」關閉 sheet 時才觸發 (closeSettings → rebuildQueue)
+  _pendingMood = chip.dataset.mood;
 });
 
 // init
