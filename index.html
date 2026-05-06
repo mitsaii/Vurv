@@ -1406,7 +1406,7 @@
         <div class="toggle-hint" id="theme-hint">跟隨系統</div>
       </div>
       <label class="toggle-switch">
-        <input type="checkbox" id="dark-toggle" onchange="applyTheme()" />
+        <input type="checkbox" id="dark-toggle" onchange="_updateThemeHint(this.checked)" />
         <span class="toggle-track"></span>
       </label>
     </div>
@@ -2644,29 +2644,42 @@ function navTo(name) {
 }
 
 // ========== Settings sheet ==========
-// 暫存篩選值，按套用才真正寫入 state
+// 暫存所有設定值，按套用才真正寫入 state
 let _pendingLang = 'all';
 let _pendingMood = 'all';
+let _pendingSim  = 60;
+let _snapDark    = false; // 開 sheet 時的 dark toggle 狀態（取消時還原用）
 
 function openSettings() {
-  // 開啟時把目前 state 複製進 pending，chips 只改 pending
   _pendingLang = state.langFilter;
   _pendingMood = state.moodFilter;
+  _pendingSim  = state.similarity;
+  _snapDark    = document.getElementById('dark-toggle').checked;
   document.getElementById('sheet-backdrop').classList.add('open');
   document.getElementById('sheet').classList.add('open');
 }
 
 function cancelSettings() {
-  // 點 backdrop（取消）→ 把 chips 還原成 state 現有值，不套用
+  // 點 backdrop → 還原所有 UI 到套用前的狀態，不寫入 state
   document.getElementById('sheet-backdrop').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
   _syncChipsToState();
+  // 還原 slider
+  simSlider.value = state.similarity;
+  simLabelEl.textContent = _simLabel(state.similarity);
+  // 還原 dark toggle
+  const toggle = document.getElementById('dark-toggle');
+  toggle.checked = _snapDark;
+  _updateThemeHint(_snapDark);
 }
 
 function closeSettings() {
-  // 按套用 → 把 pending 寫入 state 再重建
+  // 按套用 → 把所有 pending 寫入 state
   state.langFilter = _pendingLang;
   state.moodFilter = _pendingMood;
+  state.similarity = _pendingSim;
+  try { localStorage.setItem('tuige_similarity', state.similarity); } catch(e) {}
+  applyTheme(); // 讀 toggle.checked 套用深色 / 淺色並存 localStorage
   document.getElementById('sheet-backdrop').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
   rebuildQueue();
@@ -2681,6 +2694,12 @@ function _syncChipsToState() {
     c.classList.toggle('active', c.dataset.lang === state.langFilter));
   document.querySelectorAll('#mood-chips .chip').forEach(c =>
     c.classList.toggle('active', c.dataset.mood === state.moodFilter));
+}
+
+function _updateThemeHint(checked) {
+  const saved = localStorage.getItem('tuige_theme');
+  document.getElementById('theme-hint').textContent =
+    checked ? '深色模式開啟' : (saved === 'light' ? '淺色模式開啟' : '跟隨系統');
 }
 // ========== Volume ==========
 const volSlider = document.getElementById('vol-slider');
@@ -2750,9 +2769,8 @@ function _simLabel(v) {
   simLabelEl.textContent = _simLabel(state.similarity);
 })();
 simSlider.addEventListener('input', e => {
-  state.similarity = +e.target.value;
-  simLabelEl.textContent = _simLabel(state.similarity);
-  try { localStorage.setItem('tuige_similarity', state.similarity); } catch(e) {}
+  _pendingSim = +e.target.value;
+  simLabelEl.textContent = _simLabel(_pendingSim); // 只更新 label，不動 state
 });
 
 // Language filter chips — 只更新 pending，不動 state
