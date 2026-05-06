@@ -2648,12 +2648,14 @@ function navTo(name) {
 let _pendingLang = 'all';
 let _pendingMood = 'all';
 let _pendingSim  = 60;
+let _pendingVol  = 85;
 let _snapDark    = false; // 開 sheet 時的 dark toggle 狀態（取消時還原用）
 
 function openSettings() {
   _pendingLang = state.langFilter;
   _pendingMood = state.moodFilter;
   _pendingSim  = state.similarity;
+  _pendingVol  = parseFloat(localStorage.getItem('tuige_volume')) || audio.volume * 100;
   _snapDark    = document.getElementById('dark-toggle').checked;
   document.getElementById('sheet-backdrop').classList.add('open');
   document.getElementById('sheet').classList.add('open');
@@ -2664,9 +2666,12 @@ function cancelSettings() {
   document.getElementById('sheet-backdrop').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
   _syncChipsToState();
-  // 還原 slider
+  // 還原相似度 slider
   simSlider.value = state.similarity;
   simLabelEl.textContent = _simLabel(state.similarity);
+  // 還原音量 slider
+  volSlider.value = _pendingVol;
+  volVal.textContent = Math.round(_pendingVol) + '%';
   // 還原 dark toggle
   const toggle = document.getElementById('dark-toggle');
   toggle.checked = _snapDark;
@@ -2679,6 +2684,8 @@ function closeSettings() {
   state.moodFilter = _pendingMood;
   state.similarity = _pendingSim;
   try { localStorage.setItem('tuige_similarity', state.similarity); } catch(e) {}
+  audio.volume = _pendingVol / 100;
+  try { localStorage.setItem('tuige_volume', _pendingVol); } catch(e) {}
   applyTheme(); // 讀 toggle.checked 套用深色 / 淺色並存 localStorage
   document.getElementById('sheet-backdrop').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
@@ -2712,10 +2719,8 @@ const volVal    = document.getElementById('vol-val');
   audio.volume = v / 100;
 })();
 volSlider.addEventListener('input', e => {
-  const v = +e.target.value;
-  volVal.textContent = v + '%';
-  audio.volume = v / 100;
-  try { localStorage.setItem('tuige_volume', v); } catch(e) {}
+  _pendingVol = +e.target.value;
+  volVal.textContent = Math.round(_pendingVol) + '%'; // 只更新 label，不動 audio
 });
 
 // ========== Dark / Light mode ==========
