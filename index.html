@@ -1381,13 +1381,13 @@
       </div>
       <div class="filter-chips" id="mood-chips">
         <button class="chip active" data-mood="all">全部</button>
-        <button class="chip" data-mood="romantic">💕 浪漫</button>
-        <button class="chip" data-mood="sad">😢 悲傷</button>
-        <button class="chip" data-mood="nostalgic">🌅 懷舊</button>
-        <button class="chip" data-mood="happy">😊 開心</button>
-        <button class="chip" data-mood="dreamy">✨ 夢幻</button>
-        <button class="chip" data-mood="anthemic">🔥 燃燒</button>
-        <button class="chip" data-mood="chill">🌿 放鬆</button>
+        <button class="chip" data-mood="romantic">浪漫</button>
+        <button class="chip" data-mood="sad">悲傷</button>
+        <button class="chip" data-mood="nostalgic">懷舊</button>
+        <button class="chip" data-mood="happy">開心</button>
+        <button class="chip" data-mood="dreamy">夢幻</button>
+        <button class="chip" data-mood="anthemic">燃燒</button>
+        <button class="chip" data-mood="chill">放鬆</button>
       </div>
     </div>
 
@@ -1882,8 +1882,14 @@ function topThreeTags(seed, song) {
 // ========== Render: home ==========
 function renderHome() {
   const grid = document.getElementById('seed-grid');
-  // Shuffle all songs and pick 6 different ones every time
-  const shuffled = [...SONGS].sort(() => Math.random() - 0.5).slice(0, 6);
+  // Filter by language + mood preference, then shuffle and pick 6
+  const pool = SONGS.filter(s => {
+    if (state.langFilter !== 'all' && !s.tags.includes(state.langFilter)) return false;
+    if (state.moodFilter !== 'all' && !s.tags.includes(state.moodFilter)) return false;
+    return true;
+  });
+  const source = pool.length >= 4 ? pool : SONGS; // fallback if pool too small
+  const shuffled = [...source].sort(() => Math.random() - 0.5).slice(0, 6);
   grid.innerHTML = shuffled.map(s => `
     <button class="seed-card" onclick="setSeed('${s.id}')">
       <div class="seed-cover" id="sc-${s.id}" style="background: linear-gradient(135deg, ${s.c1}, ${s.c2});">
@@ -2646,6 +2652,7 @@ function closeSettings() {
   document.getElementById('sheet-backdrop').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
   rebuildQueue();
+  renderHome();
   if (document.getElementById('screen-discover').classList.contains('active')) {
     renderStack();
   }
