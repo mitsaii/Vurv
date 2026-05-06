@@ -2727,18 +2727,11 @@ simSlider.addEventListener('input', e => {
 document.getElementById('lang-chips').addEventListener('click', e => {
   const chip = e.target.closest('.chip');
   if (!chip) return;
-  if (chip.dataset.lang === state.langFilter) return; // no-op if unchanged
+  if (chip.dataset.lang === state.langFilter) return;
   document.querySelectorAll('#lang-chips .chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
   state.langFilter = chip.dataset.lang;
-  // Rebuild immediately so the user can see the filter take effect
-  // even before the settings sheet is closed.
-  if (state.seed) {
-    rebuildQueue();
-    if (document.getElementById('screen-discover').classList.contains('active')) {
-      renderStack();
-    }
-  }
+  // 實際重建在按「套用」關閉 sheet 時才觸發 (closeSettings → rebuildQueue)
 });
 
 // ========== Toast ==========
@@ -2758,12 +2751,7 @@ document.getElementById('mood-chips').addEventListener('click', e => {
   document.querySelectorAll('#mood-chips .chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
   state.moodFilter = chip.dataset.mood;
-  if (state.seed) {
-    rebuildQueue();
-    if (document.getElementById('screen-discover').classList.contains('active')) {
-      renderStack();
-    }
-  }
+  // 實際重建在按「套用」關閉 sheet 時才觸發 (closeSettings → rebuildQueue)
 });
 
 // init
