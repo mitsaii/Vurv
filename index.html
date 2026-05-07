@@ -1244,7 +1244,7 @@
     <div class="topbar">
       <h1>Vurv</h1>
       <div class="topbar-icon" onclick="openSettings()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
       </div>
     </div>
 
@@ -1366,8 +1366,8 @@
         </div>
       </div>
       <div style="display: flex; gap: 10px; margin-top: 14px;">
-        <a href="/about" style="flex:1; padding: 12px 14px; text-align: center; background: #faf6f1; border: 1px solid var(--border); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px;">關於 Vurv</a>
-        <a href="/how-it-works" style="flex:1; padding: 12px 14px; text-align: center; background: #faf6f1; border: 1px solid var(--border); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px;">推薦原理</a>
+        <a href="/about" style="flex:1; padding: 12px 14px; text-align: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px;">關於 Vurv</a>
+        <a href="/how-it-works" style="flex:1; padding: 12px 14px; text-align: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px;">推薦原理</a>
       </div>
       <button class="ad-confirm-btn" onclick="closeLimitOverlay()" style="margin-top: 10px;">關閉</button>
     </div>
@@ -1822,6 +1822,70 @@ const SONGS = [
     tags:['mid-tempo','indie','kpop','male','emotional','sad','introspective','nostalgic'] },
   { id:'ssn1',  title:'파란만장', artist:'SE SO NEON', year:2018, c1:'#A8C5E8', c2:'#E8C5A8',
     tags:['mid-tempo','indie','kpop','female','dreamy','guitar','emotional','introspective'] },
+
+  // ===== 更多西洋冷門 =====
+  { id:'fkgo',  title:'Fake Plastic Trees', artist:'Radiohead', year:1995, c1:'#B8C5D9', c2:'#8A9AB8',
+    tags:['slow','indie','western','male','sad','guitar','emotional','introspective','minimal'] },
+  { id:'crtl',  title:'Control', artist:'Halsey', year:2015, c1:'#1A1A2A', c2:'#5A3A6A',
+    tags:['slow','indie','western','female','dark','piano','emotional','introspective','powerful'] },
+  { id:'scar',  title:'Scar Tissue', artist:'Red Hot Chili Peppers', year:1999, c1:'#D9B88C', c2:'#A87850',
+    tags:['mid-tempo','rock','western','male','nostalgic','guitar','emotional','folk'] },
+  { id:'nvmd',  title:'Come as You Are', artist:'Nirvana', year:1991, c1:'#3A4A3A', c2:'#6A8A6A',
+    tags:['mid-tempo','rock','western','male','dark','guitar','indie','powerful','nostalgic'] },
+  { id:'kyoto', title:'Kyoto', artist:'Phoebe Bridgers', year:2020, c1:'#E8C5A8', c2:'#F4E4D4',
+    tags:['fast','indie','western','female','emotional','guitar','anthemic','sad','folk'] },
+  { id:'mood',  title:'Moon Song', artist:'Phoebe Bridgers', year:2020, c1:'#C5D9E8', c2:'#E8E8F4',
+    tags:['slow','indie','western','female','sad','acoustic','emotional','dreamy','minimal'] },
+  { id:'eves',  title:'Savior Complex', artist:'Phoebe Bridgers', year:2020, c1:'#D9C5E8', c2:'#E8D9F4',
+    tags:['slow','indie','western','female','sad','acoustic','introspective','dreamy'] },
+  { id:'sftm',  title:'Liability', artist:'Lorde', year:2017, c1:'#2A1A3A', c2:'#5A3A7A',
+    tags:['slow','indie','western','female','sad','piano','emotional','introspective','dark'] },
+  { id:'grnl',  title:'Green Light', artist:'Lorde', year:2017, c1:'#A8D9C5', c2:'#5AB888',
+    tags:['fast','indie','western','female','energetic','synth','anthemic','emotional','happy'] },
+  { id:'stp',   title:'Colorblind', artist:'Counting Crows', year:1999, c1:'#C5B8A8', c2:'#8A7A6A',
+    tags:['slow','indie','western','male','sad','piano','emotional','nostalgic','ballad'] },
+  { id:'novo2', title:'Anchor', artist:'Novo Amor', year:2017, c1:'#D4E8C8', c2:'#A8C8A8',
+    tags:['slow','indie','western','male','acoustic','dreamy','emotional','folk','minimal'] },
+  { id:'iron',  title:'Naked as We Came', artist:'Iron & Wine', year:2004, c1:'#E8D9C5', c2:'#C5A88A',
+    tags:['slow','indie','western','male','folk','acoustic','dreamy','romantic','minimal'] },
+  { id:'sufj',  title:'Death with Dignity', artist:'Sufjan Stevens', year:2015, c1:'#D9C5A8', c2:'#B8A88C',
+    tags:['slow','indie','western','male','folk','acoustic','sad','emotional','introspective'] },
+
+  // ===== 更多台灣冷門 =====
+  { id:'sno',   title:'三月裡的小雨', artist:'大衛', year:2019, c1:'#A8D9C5', c2:'#C5E8D9',
+    tags:['slow','indie','mandopop','male','folk','acoustic','dreamy','nostalgic','sad'] },
+  { id:'lrk',   title:'落雨聲', artist:'滅火器', year:2014, c1:'#3A4A5A', c2:'#5A7A8A',
+    tags:['mid-tempo','indie','mandopop','male','rock','emotional','nostalgic','powerful','guitar'] },
+  { id:'crd',   title:'Charade', artist:'落日飛車', year:2020, c1:'#E8C5D9', c2:'#C5A8D9',
+    tags:['mid-tempo','indie','mandopop','male','dreamy','synth','romantic','chill','nostalgic'] },
+  { id:'ygb',   title:'頁岩層裡的男孩', artist:'老王樂隊', year:2017, c1:'#4A3A2A', c2:'#8A6A4A',
+    tags:['mid-tempo','indie','mandopop','male','folk','guitar','emotional','introspective','warm'] },
+  { id:'lwy',   title:'我是真的愛你', artist:'老王樂隊', year:2019, c1:'#E8A8A8', c2:'#D98888',
+    tags:['mid-tempo','indie','mandopop','male','romantic','guitar','warm','emotional','folk'] },
+  { id:'mhc',   title:'明河存在', artist:'蘇打綠', year:2008, c1:'#A8C5D9', c2:'#C5D9E8',
+    tags:['slow','indie','mandopop','male','dreamy','piano','emotional','sad','introspective'] },
+
+  // ===== 更多日本冷門 =====
+  { id:'lamp1', title:'恋人へ', artist:'Lamp', year:2007, c1:'#E8E4D4', c2:'#D4D0C0',
+    tags:['slow','indie','jpop','female','romantic','acoustic','dreamy','nostalgic','minimal'] },
+  { id:'yhs',   title:'春泥棒', artist:'ヨルシカ', year:2019, c1:'#C5D9A8', c2:'#D9E8C5',
+    tags:['fast','indie','jpop','male','emotional','guitar','anthemic','sad','energetic'] },
+  { id:'tric',  title:'あふれる', artist:'tricot', year:2013, c1:'#E84A6B', c2:'#F4A8B8',
+    tags:['fast','indie','jpop','female','energetic','rock','powerful','dark','emotional'] },
+  { id:'mkto',  title:'Mela!', artist:'緑黄色社会', year:2020, c1:'#F4D374', c2:'#E8A84A',
+    tags:['fast','indie','jpop','female','happy','energetic','pop','anthemic','summery'] },
+  { id:'aobt',  title:'あの夢をなぞって', artist:'YOASOBI', year:2020, c1:'#3A3A6A', c2:'#6A6AA8',
+    tags:['fast','indie','jpop','female','energetic','dreamy','emotional','anthemic','synth'] },
+  { id:'ado1',  title:'踊', artist:'Ado', year:2021, c1:'#1A0A2A', c2:'#5A2A8A',
+    tags:['fast','indie','jpop','female','dark','energetic','powerful','electronic','dramatic'] },
+
+  // ===== 更多韓國冷門 =====
+  { id:'silg',  title:'Glow', artist:'Silica Gel', year:2022, c1:'#3A3A4A', c2:'#8A8AB8',
+    tags:['fast','indie','kpop','male','rock','energetic','dark','powerful','anthemic'] },
+  { id:'ohhy',  title:'위잉위잉', artist:'혁오 (Hyukoh)', year:2014, c1:'#F4D374', c2:'#E8C55A',
+    tags:['fast','indie','kpop','male','energetic','guitar','happy','anthemic','dreamy'] },
+  { id:'dean2', title:'Pour Up', artist:'DEAN', year:2016, c1:'#2A2A3A', c2:'#6A5A7A',
+    tags:['slow','indie','kpop','male','rnb','chill','dark','dreamy','emotional'] },
 ];
 
 const TAG_LABEL = {
