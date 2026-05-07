@@ -1845,6 +1845,7 @@ const state = {
   queue: [],
   history: [],
   liked: [],            // {id, score} — persisted to localStorage
+  skipped: [],          // [id, ...] — 永久封鎖，persisted to localStorage
   saved: [],
   similarity: 60,       // 0 = very similar, 100 = exploratory
   langFilter: 'all',    // 'all' | 'mandopop' | 'western' | 'kpop' | 'jpop'
@@ -1863,6 +1864,15 @@ function loadLiked() {
   try {
     const raw = localStorage.getItem('tuige_liked');
     if (raw) state.liked = JSON.parse(raw);
+  } catch(e) {}
+}
+function saveSkipped() {
+  try { localStorage.setItem('tuige_skipped', JSON.stringify(state.skipped)); } catch(e) {}
+}
+function loadSkipped() {
+  try {
+    const raw = localStorage.getItem('tuige_skipped');
+    if (raw) state.skipped = JSON.parse(raw);
   } catch(e) {}
 }
 
@@ -1924,7 +1934,7 @@ function rebuildQueue() {
   if (!state.seed) return;
   const seed = SONGS.find(s => s.id === state.seed);
   if (!seed) return;
-  const seen = new Set(state.history);
+  const seen = new Set([...state.history, ...state.skipped]);
   seen.add(seed.id);
   state.liked.forEach(l => seen.add(l.id)); // never re-recommend liked songs
 
@@ -2397,7 +2407,11 @@ function advanceCard(type, songId) {
     showToast(`已加入歌單 · ${song.title}`);
     boostQueue(song.tags, +0.1);
   } else if (type === 'skip' && song) {
-    showToast('已跳過');
+    if (!state.skipped.includes(songId)) {
+      state.skipped.push(songId);
+      saveSkipped();
+    }
+    showToast('已跳過，不再推薦');
     boostQueue(song.tags, -0.06);
   }
 
@@ -2926,6 +2940,7 @@ document.getElementById('mood-chips').addEventListener('click', e => {
 
 // init
 loadLiked();
+loadSkipped();
 state.daily = loadDaily();
 renderHome();
 
