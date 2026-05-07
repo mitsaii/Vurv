@@ -2569,13 +2569,16 @@ async function fetchSongData(song) {
   for (const q of queryForms) {
     try {
       const data = await fetchWithTimeout(`/api/itunes?term=${encodeURIComponent(q)}`);
-      const r = data.results && data.results[0];
-      if (r && r.artworkUrl100) {
+      const results = data.results || [];
+      // 優先找有 previewUrl 的結果，找不到就退而求其次用第一筆
+      const withPreview = results.find(r => r.artworkUrl100 && r.previewUrl);
+      const r = withPreview || results.find(r => r.artworkUrl100);
+      if (r) {
         result = {
           previewUrl: r.previewUrl || null,
           artworkUrl: r.artworkUrl100.replace('100x100bb', '600x600bb'),
         };
-        console.log(`[Vurv] artwork OK: ${song.title}`);
+        console.log(`[Vurv] artwork OK: ${song.title}${r.previewUrl ? ' (with preview)' : ' (no preview)'}`);
         break;
       }
     } catch (e) { lastError = e; }
@@ -2827,7 +2830,18 @@ function navTo(name) {
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   document.querySelector(`.nav-btn[data-screen="${name}"]`)?.classList.add('active');
   if (name === 'discover') {
-    if (!state.seed) navTo('home');
+    if (!state.seed) {
+      document.getElementById('stack').innerHTML = `
+        <div class="empty-state">
+          <div style="font-size: 36px; margin-bottom: 16px;">🎵</div>
+          <div class="big">還沒有種子歌</div>
+          <div style="font-size: 13px; line-height: 1.7; margin-top: 8px;">
+            回首頁挑一首你喜歡的歌，<br>或按「隨機推薦」讓 Vurv 幫你決定。
+          </div>
+          <button onclick="navTo('home')" style="margin-top: 24px; padding: 11px 24px; background: var(--primary); color: #fff; border: none; border-radius: 99px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;">回首頁選歌</button>
+        </div>`;
+      updateDailyUI();
+    }
     else { renderStack(); updateDailyUI(); }
   } else if (name === 'likes') {
     stopFakePlay();

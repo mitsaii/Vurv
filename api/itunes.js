@@ -18,7 +18,7 @@ export default async function handler(req) {
   // 依序試各國 store,找到有結果就回
   for (const country of COUNTRIES) {
     try {
-      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=${country}&limit=3&media=music&entity=song`;
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=${country}&limit=5&media=music&entity=song`;
       const response = await fetch(url, {
         headers: {
           // 用 iTunes 自己的 UA,避免被當瀏覽器爬蟲擋
