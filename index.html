@@ -80,7 +80,7 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 14px 18px 24px;
+    padding: 14px 18px max(90px, calc(70px + env(safe-area-inset-bottom)));
     display: none;
     animation: fadeIn .25s ease;
   }
@@ -609,7 +609,7 @@
   .liked-action-overlay.open { opacity: 1; pointer-events: auto; }
   .liked-action-sheet {
     position: fixed; left: 0; right: 0; bottom: 0;
-    background: var(--card);
+    background: var(--surface);
     border-radius: 20px 20px 0 0;
     padding: 12px 16px 32px;
     z-index: 401;
@@ -684,15 +684,17 @@
 
   /* Bottom nav */
   .bottom-nav {
-    flex-shrink: 0;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
     background: var(--surface);
     border-top: 0.5px solid var(--border);
     display: flex;
     justify-content: space-around;
     padding: 10px
             max(8px, env(safe-area-inset-right))
-            max(10px, env(safe-area-inset-bottom))
+            max(16px, env(safe-area-inset-bottom))
             max(8px, env(safe-area-inset-left));
+    z-index: 30;
   }
   .nav-btn {
     flex: 1;
@@ -3679,7 +3681,9 @@ function closeStreamSheet() {
 // ========== Nav ==========
 function navTo(name) {
   document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
+  const targetScreen = document.getElementById('screen-' + name);
+  targetScreen.classList.add('active');
+  targetScreen.scrollTop = 0; // 切頁時滾回頂部
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   document.querySelector(`.nav-btn[data-screen="${name}"]`)?.classList.add('active');
   if (name === 'discover') {
