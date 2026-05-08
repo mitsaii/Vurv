@@ -80,7 +80,7 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 14px 18px max(110px, calc(80px + env(safe-area-inset-bottom)));
+    padding: 14px 18px 24px;
     display: none;
     animation: fadeIn .25s ease;
   }
@@ -270,6 +270,7 @@
     will-change: transform;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    touch-action: pan-y;   /* 水平手勢交給 JS，垂直保留給瀏覽器 */
   }
   .card.dragging { transition: none; cursor: grabbing; }
   .card-cover {
@@ -683,10 +684,7 @@
 
   /* Bottom nav */
   .bottom-nav {
-    position: absolute;
-    bottom: 0;
-    left: calc(-1 * env(safe-area-inset-left));
-    right: calc(-1 * env(safe-area-inset-right));
+    flex-shrink: 0;
     background: var(--surface);
     border-top: 0.5px solid var(--border);
     display: flex;
@@ -3037,25 +3035,15 @@ function updateQueueUI() {
 let drag = null;
 
 // Document-level listeners set up ONCE — no leak
-// rAF 節流：只在瀏覽器下一幀才寫入 DOM
-let _rafPending = false;
-function _applyDragTransform() {
-  if (!drag) return;
-  const { dx, dy, card, likeHint, skipHint } = drag;
-  const rot = dx / 20;
-  card.style.transform = `translate3d(${dx}px, ${dy * 0.4}px, 0) rotate(${rot}deg)`;
-  if (likeHint) likeHint.style.opacity = Math.min(1, Math.max(0, dx / 80));
-  if (skipHint) skipHint.style.opacity = Math.min(1, Math.max(0, -dx / 80));
-  _rafPending = false;
-}
+// 直接跟手更新，不走 rAF，保持 1:1 感
 function _onDragMove(clientX, clientY) {
   if (!drag) return;
   drag.dx = clientX - drag.startX;
   drag.dy = clientY - drag.startY;
-  if (!_rafPending) {
-    _rafPending = true;
-    requestAnimationFrame(_applyDragTransform);
-  }
+  const rot = drag.dx / 16;
+  drag.card.style.transform = `translate3d(${drag.dx}px, ${drag.dy * 0.3}px, 0) rotate(${rot}deg)`;
+  if (drag.likeHint) drag.likeHint.style.opacity = Math.min(1, Math.max(0, drag.dx / 70));
+  if (drag.skipHint) drag.skipHint.style.opacity = Math.min(1, Math.max(0, -drag.dx / 70));
 }
 document.addEventListener('mousemove', (e) => _onDragMove(e.clientX, e.clientY));
 document.addEventListener('touchmove', (e) => {
@@ -3090,10 +3078,6 @@ function attachSwipe(card) {
   };
   card.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
   card.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
-  // non-passive：拖動中阻止 iOS 捲動頁面，讓卡片手勢優先
-  card.addEventListener('touchmove', (e) => {
-    if (drag) e.preventDefault();
-  }, { passive: false });
 }
 
 function finishSwipe(type) {
@@ -3551,7 +3535,11 @@ function openLikedActionSheet(songId) {
   document.getElementById('la-title').textContent = s.title;
   document.getElementById('la-artist').textContent = `${s.artist} · ${s.year}`;
   const cover = document.getElementById('la-cover');
-  cover.style.background = `linear-gradient(135deg, ${s.c1}, ${s.c2})`;
+  // 明確重設所有 background longhand，避免舊圖片 URL 蓋掉漸層
+  cover.style.backgroundImage = `linear-gradient(135deg, ${s.c1}, ${s.c2})`;
+  cover.style.backgroundSize = 'cover';
+  cover.style.backgroundPosition = 'center';
+  cover.style.backgroundColor = '';
   loadArtwork(s, cover);
   document.getElementById('liked-action-overlay').classList.add('open');
 }
