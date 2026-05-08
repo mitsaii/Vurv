@@ -402,32 +402,23 @@
     margin-top: 8px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
-  .why-meter .bar {
-    flex: 1;
-    height: 4px;
-    background: var(--surface);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  @media (prefers-color-scheme: dark) {
-    .why-meter .bar { background: rgba(255,255,255,0.1); }
-  }
-  .why-meter .bar-fill {
-    height: 100%;
-    background: var(--primary);
-    border-radius: 2px;
-    transition: width .4s ease;
-  }
-  .why-meter .pct {
+  .sim-badge {
     font-size: 11px;
-    color: var(--primary-800);
     font-weight: 600;
-    font-variant-numeric: tabular-nums;
+    color: var(--primary-800);
+    background: var(--primary-50);
+    padding: 2px 8px;
+    border-radius: 20px;
   }
   @media (prefers-color-scheme: dark) {
-    .why-meter .pct { color: var(--primary-100); }
+    .sim-badge { color: var(--primary-100); background: rgba(83,74,183,0.2); }
+  }
+  .why-stars {
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--primary);
   }
 
   /* Action row */
@@ -528,6 +519,40 @@
   }
 
   /* Liked songs list */
+  .likes-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface-2);
+    border-radius: 12px;
+    padding: 4px;
+    margin: 0 20px 16px;
+  }
+  .likes-tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: none;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s, color .15s;
+  }
+  .likes-tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .likes-panel { display: none; }
+  .likes-panel.active { display: block; }
+  .ach-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 20px 20px;
+  }
   .liked-list { display: flex; flex-direction: column; gap: 4px; }
   .liked-item {
     display: flex;
@@ -554,6 +579,64 @@
     font-size: 15px;
   }
   .liked-delete:hover { background: #FFE5E5; color: #D94040; }
+
+  /* 長按 action sheet */
+  .liked-action-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 400;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .liked-action-overlay.open { opacity: 1; pointer-events: auto; }
+  .liked-action-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: var(--card);
+    border-radius: 20px 20px 0 0;
+    padding: 12px 16px 32px;
+    z-index: 401;
+    transform: translateY(100%);
+    transition: transform .25s cubic-bezier(.32,1,.55,1);
+    max-width: 480px; margin: 0 auto;
+  }
+  .liked-action-overlay.open .liked-action-sheet { transform: translateY(0); }
+  .liked-action-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 14px;
+  }
+  .liked-action-song {
+    display: flex; align-items: center; gap: 12px;
+    padding: 4px 0 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .liked-action-song-cover {
+    width: 44px; height: 44px;
+    border-radius: 8px; flex-shrink: 0;
+  }
+  .liked-action-song-title { font-size: 14px; font-weight: 600; }
+  .liked-action-song-artist { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+  .liked-action-btn {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; padding: 13px 4px;
+    border: none; background: transparent;
+    font-size: 15px; color: var(--text-1);
+    cursor: pointer; border-radius: 10px;
+    transition: background .15s;
+    font-family: inherit;
+  }
+  .liked-action-btn:hover { background: var(--surface); }
+  .liked-action-btn.danger { color: #D94040; }
+  .liked-action-btn svg, .liked-action-btn .btn-icon { flex-shrink: 0; }
+  .liked-action-cancel {
+    margin-top: 6px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+  /* 長按時輕微縮放反饋 */
+  .liked-item.pressing { transform: scale(.97); transition: transform .1s; }
   .liked-cover {
     width: 48px; height: 48px;
     border-radius: 8px;
@@ -767,6 +850,57 @@
     letter-spacing: 0.06em;
     margin-bottom: 12px;
   }
+  /* 試聽播放器 */
+  .stream-player {
+    display: none;
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+  .stream-play-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .stream-play-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background .15s;
+  }
+  .stream-play-btn:active { background: var(--primary-800); }
+  .stream-progress-wrap { flex: 1; }
+  .stream-progress-bar {
+    height: 4px;
+    background: var(--border-strong);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .stream-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--primary);
+    border-radius: 2px;
+    transition: width .3s linear;
+  }
+  .stream-ts {
+    font-size: 11px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .stream-loading {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 10px;
+    display: none;
+  }
   .stream-btns { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
   .stream-btn {
     display: flex;
@@ -955,6 +1089,109 @@
   .daily-pill.full .dp-fill { background: #D94040; }
 
   /* Ad overlay */
+  /* ===== Achievement overlay ===== */
+  .ach-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  .ach-overlay.open { opacity: 1; pointer-events: auto; }
+  .ach-card {
+    background: var(--surface);
+    border-radius: 28px;
+    padding: 36px 28px 28px;
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+    transform: scale(0.88) translateY(24px);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .ach-overlay.open .ach-card { transform: scale(1) translateY(0); }
+  .ach-icon {
+    font-size: 64px;
+    line-height: 1;
+    margin-bottom: 16px;
+    display: block;
+    animation: achBounce .5s .2s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes achBounce {
+    0%   { transform: scale(0.4); opacity: 0; }
+    70%  { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .ach-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .ach-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .ach-desc {
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .ach-next {
+    background: var(--surface-2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  .ach-next-label {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 8px;
+  }
+  .ach-next-bar {
+    height: 5px;
+    background: var(--border-strong);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .ach-next-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 3px;
+    transition: width .6s .3s ease;
+    width: 0%;
+  }
+  .ach-next-hint {
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 500;
+  }
+  .ach-close-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  /* ===== /Achievement overlay ===== */
+
   .ad-overlay {
     position: absolute;
     inset: 0;
@@ -1312,7 +1549,7 @@
 
     <div class="stack" id="stack"></div>
 
-    <div class="actions">
+    <div class="actions" id="card-actions" style="visibility:hidden;">
       <button class="action-btn small" onclick="reactToCard('skip')" title="跳過">
         <div class="action-icon-x"></div>
       </button>
@@ -1323,7 +1560,7 @@
 
     <div class="queue">
       <span class="queue-label" id="queue-label"></span>
-      <span class="queue-stats" id="queue-stats">已聽 0 · 喜歡 0</span>
+      <span class="queue-stats" id="queue-stats"></span>
     </div>
     <div class="daily-pill" id="daily-pill">
       <div class="dp-bar"><div class="dp-fill" id="dp-fill"></div></div>
@@ -1335,11 +1572,36 @@
   <div class="screen" id="screen-likes">
     <div class="topbar">
       <h1>我的歌單</h1>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="likes-count" style="font-size:13px;color:var(--text-2);font-weight:500;"></span>
+        <select id="likes-sort" onchange="renderLikes()" style="font-size:12px;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;cursor:pointer;font-family:inherit;outline:none;">
+          <option value="newest">最新加入</option>
+          <option value="oldest">最早加入</option>
+          <option value="score">相似度</option>
+          <option value="artist">藝人</option>
+          <option value="year">年份</option>
+        </select>
+      </div>
     </div>
-    <div class="liked-list" id="liked-list"></div>
-    <div class="empty-state" id="empty-likes">
-      <div class="big">還沒有喜歡的歌</div>
-      <div>滑卡片時點愛心,就會收到這裡</div>
+
+    <!-- 分頁 tabs -->
+    <div class="likes-tabs">
+      <button class="likes-tab active" id="tab-songs" onclick="switchLikesTab('songs')">收藏歌曲</button>
+      <button class="likes-tab" id="tab-achievements" onclick="switchLikesTab('achievements')">我的成就</button>
+    </div>
+
+    <!-- 歌曲面板 -->
+    <div class="likes-panel active" id="panel-songs">
+      <div class="liked-list" id="liked-list"></div>
+      <div class="empty-state" id="empty-likes">
+        <div class="big">還沒有喜歡的歌</div>
+        <div>滑卡片時點愛心,就會收到這裡</div>
+      </div>
+    </div>
+
+    <!-- 成就面板 -->
+    <div class="likes-panel" id="panel-achievements">
+      <div class="ach-grid" id="ach-list"></div>
     </div>
   </div>
 
@@ -1354,6 +1616,21 @@
         <div class="stream-song-artist" id="stream-artist"></div>
       </div>
     </div>
+
+    <!-- 試聽播放器 -->
+    <div class="stream-player" id="stream-player">
+      <div class="stream-play-row">
+        <button class="stream-play-btn" id="stream-play-btn" onclick="toggleStreamPlay()">
+          <svg id="stream-play-icon" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><polygon points="5,3 19,12 5,21"/></svg>
+        </button>
+        <div class="stream-progress-wrap">
+          <div class="stream-progress-bar"><div class="stream-progress-fill" id="stream-fill"></div></div>
+          <div class="stream-ts" id="stream-ts">0:00 / 0:30</div>
+        </div>
+      </div>
+      <div class="stream-loading" id="stream-loading">載入試聽中…</div>
+    </div>
+
     <div class="stream-label">選擇平台收聽</div>
     <div class="stream-btns" id="stream-btns"></div>
   </div>
@@ -1376,6 +1653,22 @@
         <a href="/how-it-works" style="flex:1; padding: 12px 14px; text-align: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px;">推薦原理</a>
       </div>
       <button class="ad-confirm-btn" onclick="closeLimitOverlay()" style="margin-top: 10px;">關閉</button>
+    </div>
+  </div>
+
+  <!-- ACHIEVEMENT OVERLAY -->
+  <div class="ach-overlay" id="ach-overlay">
+    <div class="ach-card">
+      <span class="ach-icon" id="ach-icon">🌱</span>
+      <div class="ach-label">成就解鎖</div>
+      <div class="ach-title" id="ach-title">音樂探索者</div>
+      <div class="ach-desc" id="ach-desc"></div>
+      <div class="ach-next" id="ach-next">
+        <div class="ach-next-label" id="ach-next-label">下一個成就</div>
+        <div class="ach-next-bar"><div class="ach-next-fill" id="ach-next-fill"></div></div>
+        <div class="ach-next-hint" id="ach-next-hint"></div>
+      </div>
+      <button class="ach-close-btn" onclick="closeAchievement()">繼續探索 →</button>
     </div>
   </div>
 
@@ -1464,10 +1757,52 @@
     </div>
 
     <button class="sheet-btn" onclick="closeSettings()">套用</button>
+
+    <div style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
+      <div style="font-size: 12px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px;">資料管理</div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button onclick="clearSkipped()" style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--surface-2);border:none;border-radius:var(--radius);font-size:14px;color:var(--text);cursor:pointer;font-family:inherit;text-align:left;">
+          <span>清除跳過記錄</span>
+          <span id="skipped-count" style="font-size:12px;color:var(--text-3);"></span>
+        </button>
+        <button onclick="clearLiked()" style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--surface-2);border:none;border-radius:var(--radius);font-size:14px;color:#D94040;cursor:pointer;font-family:inherit;text-align:left;">
+          <span>清除歌單</span>
+          <span id="liked-count-settings" style="font-size:12px;color:var(--text-3);"></span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
+
+  <!-- 歌單長按 action sheet -->
+  <div class="liked-action-overlay" id="liked-action-overlay" onclick="closeLikedActionSheet()">
+    <div class="liked-action-sheet" onclick="event.stopPropagation()">
+      <div class="liked-action-handle"></div>
+      <div class="liked-action-song">
+        <div class="liked-action-song-cover" id="la-cover"></div>
+        <div>
+          <div class="liked-action-song-title" id="la-title"></div>
+          <div class="liked-action-song-artist" id="la-artist"></div>
+        </div>
+      </div>
+      <button class="liked-action-btn" onclick="setAsSeed(_actionSongId)">
+        <span class="btn-icon" style="font-size:18px;">🎯</span>
+        從這首推薦
+      </button>
+      <button class="liked-action-btn" onclick="openStreamSheet(_actionSongId); closeLikedActionSheet()">
+        <span class="btn-icon" style="font-size:18px;">▶️</span>
+        播放 / 選擇平台
+      </button>
+      <div class="liked-action-cancel">
+        <button class="liked-action-btn danger" onclick="removeLiked(_actionSongId); closeLikedActionSheet()">
+          <span class="btn-icon" style="font-size:18px;">🗑️</span>
+          從歌單移除
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- BOTTOM NAV -->
   <div class="bottom-nav">
@@ -1892,6 +2227,186 @@ const SONGS = [
     tags:['fast','indie','kpop','male','energetic','guitar','happy','anthemic','dreamy'] },
   { id:'dean2', title:'Pour Up', artist:'DEAN', year:2016, c1:'#2A2A3A', c2:'#6A5A7A',
     tags:['slow','indie','kpop','male','rnb','chill','dark','dreamy','emotional'] },
+
+  // ===== 台灣獨立 (冷門擴充) =====
+  { id:'anpu1', title:'城市', artist:'安溥', year:2011, c1:'#C5D9E8', c2:'#8AB8D4',
+    tags:['mid-tempo','indie','mandopop','female','introspective','guitar','emotional','warm'] },
+  { id:'anpu2', title:'玫瑰色的你', artist:'安溥', year:2014, c1:'#F4C5D9', c2:'#D9A8B8',
+    tags:['slow','indie','mandopop','female','romantic','acoustic','dreamy','emotional'] },
+  { id:'nwdy1', title:'原來', artist:'那我懂你意思了', year:2019, c1:'#E8D9C5', c2:'#C5B8A8',
+    tags:['mid-tempo','indie','mandopop','female','sweet','pop','hopeful','warm'] },
+  { id:'nm881', title:'1am', artist:'9m88', year:2018, c1:'#1A1A2A', c2:'#4A3A6A',
+    tags:['slow','indie','mandopop','female','rnb','chill','dark','dreamy','introspective'] },
+  { id:'nm882', title:'日常', artist:'9m88', year:2018, c1:'#D9C5A8', c2:'#C5B09A',
+    tags:['mid-tempo','indie','mandopop','female','rnb','warm','chill','emotional','hopeful'] },
+  { id:'yzr1', title:'很久', artist:'宇宙人', year:2016, c1:'#A8C5E8', c2:'#E8D9C5',
+    tags:['mid-tempo','indie','mandopop','male','sweet','pop','romantic','happy'] },
+  { id:'yzr2', title:'台一線', artist:'宇宙人', year:2015, c1:'#F4E0A8', c2:'#E8C87A',
+    tags:['mid-tempo','indie','mandopop','male','nostalgic','folk','guitar','warm','summery'] },
+  { id:'bsy1', title:'一樣', artist:'八三夭', year:2017, c1:'#F4A8C5', c2:'#E8C5D9',
+    tags:['mid-tempo','indie','mandopop','male','romantic','pop','sweet','anthemic'] },
+  { id:'wqf1', title:'你啊你啊', artist:'吳青峰', year:2019, c1:'#D9C5E8', c2:'#A8B5D9',
+    tags:['mid-tempo','indie','mandopop','male','emotional','piano','introspective','dreamy'] },
+  { id:'cdbd1', title:'不', artist:'草東沒有派對', year:2016, c1:'#2A2A3A', c2:'#5A5A7A',
+    tags:['mid-tempo','indie','mandopop','male','dark','rock','emotional','introspective'] },
+  { id:'mhq1', title:'島嶼天光', artist:'滅火器', year:2014, c1:'#5A8AB8', c2:'#A8D4E8',
+    tags:['mid-tempo','indie','mandopop','male','rock','hopeful','anthemic','emotional','guitar'] },
+  { id:'sjam', title:'Airplane Mode', artist:'落日飛車', year:2020, c1:'#F4E8D4', c2:'#D4C8B4',
+    tags:['slow','indie','mandopop','male','dreamy','chill','romantic','nostalgic','synth'] },
+  { id:'badt', title:'Ugly', artist:'壞特', year:2020, c1:'#3A2A4A', c2:'#7A5A8A',
+    tags:['mid-tempo','indie','mandopop','female','rnb','dark','chill','dreamy','emotional'] },
+  { id:'hjw1', title:'很好', artist:'黃玠瑋', year:2018, c1:'#A8D9B8', c2:'#D9E8D4',
+    tags:['slow','indie','mandopop','male','folk','acoustic','warm','introspective','sad'] },
+  { id:'cqz2', title:'一百種孤獨', artist:'陳綺貞', year:2009, c1:'#E4D4C4', c2:'#D4C4B4',
+    tags:['slow','indie','mandopop','female','sad','acoustic','introspective','folk','dreamy','minimal'] },
+  { id:'sdl2', title:'你在煩惱什麼', artist:'蘇打綠', year:2012, c1:'#A4C4D4', c2:'#C4D4E4',
+    tags:['mid-tempo','indie','mandopop','male','introspective','guitar','emotional','folk'] },
+  { id:'lgz1', title:'三月裡的小雨', artist:'盧廣仲', year:2017, c1:'#A8D9C5', c2:'#C5E8D9',
+    tags:['slow','indie','mandopop','male','folk','acoustic','dreamy','nostalgic','sad'] },
+  { id:'bana1', title:'流浪記', artist:'巴奈', year:2002, c1:'#4A4A5A', c2:'#7A7A8A',
+    tags:['slow','indie','mandopop','female','sad','acoustic','folk','emotional','introspective','powerful'] },
+  { id:'rlight', title:'雷光夏 - 不要告別', artist:'雷光夏', year:2003, c1:'#D4C4A4', c2:'#E4D4B4',
+    tags:['slow','indie','mandopop','female','dreamy','acoustic','folk','nostalgic','introspective','minimal'] },
+  { id:'gwrt1', title:'渺小', artist:'告五人', year:2021, c1:'#A8B5D9', c2:'#C5D9E8',
+    tags:['slow','indie','mandopop','female','sad','piano','introspective','emotional','dreamy'] },
+  { id:'lwy2', title:'成全', artist:'老王樂隊', year:2021, c1:'#D9C5A8', c2:'#C5B09A',
+    tags:['slow','indie','mandopop','male','sad','guitar','acoustic','emotional','folk'] },
+  { id:'hsy1', title:'如果你也聽說', artist:'梁靜茹', year:2004, c1:'#E4C4D4', c2:'#D4B4C4',
+    tags:['slow','pop','mandopop','female','sad','piano','ballad','romantic','emotional'] },
+
+  // ===== 日本獨立 (冷門擴充) =====
+  { id:'zutu1', title:'眩いばかり', artist:'ずっと真夜中でいいのに。', year:2019, c1:'#3A2A4A', c2:'#8A6AB8',
+    tags:['fast','indie','jpop','female','emotional','electronic','dramatic','energetic','dreamy'] },
+  { id:'zutu2', title:'勘違い', artist:'ずっと真夜中でいいのに。', year:2020, c1:'#1A1A3A', c2:'#5A4A8A',
+    tags:['mid-tempo','indie','jpop','female','dark','synth','introspective','emotional','dreamy'] },
+  { id:'htsj1', title:'光るとき', artist:'羊文学', year:2022, c1:'#D4E8D4', c2:'#B8D4B8',
+    tags:['mid-tempo','indie','jpop','female','dreamy','guitar','emotional','hopeful','introspective'] },
+  { id:'htsj2', title:'人間だった', artist:'羊文学', year:2020, c1:'#2A3A4A', c2:'#5A6A7A',
+    tags:['mid-tempo','indie','jpop','female','dark','emotional','guitar','introspective','powerful'] },
+  { id:'ktan1', title:'青のすみか', artist:'キタニタダシ', year:2022, c1:'#3A6AA8', c2:'#A8C8E8',
+    tags:['fast','indie','jpop','male','emotional','piano','anthemic','dramatic','hopeful'] },
+  { id:'coshu1', title:'Lamp', artist:'Cö shu Nie', year:2020, c1:'#1A1A2A', c2:'#5A4A8A',
+    tags:['mid-tempo','indie','jpop','female','dark','electronic','emotional','dreamy','introspective'] },
+  { id:'akiy1', title:'モラトリアム', artist:'秋山黄色', year:2020, c1:'#E8D46A', c2:'#C8B44A',
+    tags:['mid-tempo','indie','jpop','male','emotional','guitar','introspective','rock','sad'] },
+  { id:'skym1', title:'夏残り', artist:'崎山蒼志', year:2020, c1:'#A8D4C8', c2:'#D4E8E4',
+    tags:['slow','indie','jpop','male','folk','acoustic','sad','introspective','dreamy','summery'] },
+  { id:'tfin1', title:'Last Night', artist:'The fin.', year:2018, c1:'#3A4A6A', c2:'#6A8AB8',
+    tags:['mid-tempo','indie','jpop','male','dreamy','synth','chill','romantic','introspective'] },
+  { id:'nycb1', title:'お別れの歌', artist:'never young beach', year:2016, c1:'#F4E4C4', c2:'#D4C4A4',
+    tags:['mid-tempo','indie','jpop','male','folk','guitar','nostalgic','warm','chill','summery'] },
+  { id:'suchm', title:'808', artist:'Suchmos', year:2017, c1:'#2A4A3A', c2:'#4A8A6A',
+    tags:['mid-tempo','indie','jpop','male','rnb','chill','guitar','electronic'] },
+  { id:'yns1', title:'Ride On Time', artist:'Yogee New Waves', year:2017, c1:'#F4D4A4', c2:'#E4C48A',
+    tags:['mid-tempo','indie','jpop','male','chill','guitar','summery','dreamy','nostalgic','romantic'] },
+  { id:'omntk1', title:'Flying Birds', artist:'Omoinotake', year:2020, c1:'#4A6A9A', c2:'#8AB8E8',
+    tags:['mid-tempo','indie','jpop','male','rnb','emotional','piano','chill','dreamy'] },
+  { id:'yrsk1', title:'フロム', artist:'ヨルシカ', year:2021, c1:'#A8B8D4', c2:'#D4DCE8',
+    tags:['slow','indie','jpop','male','emotional','piano','sad','introspective','dreamy'] },
+  { id:'tric1', title:'あふれる', artist:'tricot', year:2013, c1:'#E84A6B', c2:'#F4A8B8',
+    tags:['fast','indie','jpop','female','energetic','rock','powerful','dark','emotional'] },
+  { id:'mkto1', title:'Mela!', artist:'緑黄色社会', year:2020, c1:'#F4D374', c2:'#E8A84A',
+    tags:['fast','indie','jpop','female','happy','energetic','pop','anthemic','summery'] },
+  { id:'ado1b', title:'新時代', artist:'Ado', year:2022, c1:'#E84A4A', c2:'#F4A83C',
+    tags:['fast','indie','jpop','female','anthemic','energetic','dramatic','powerful','electronic'] },
+  { id:'lamp2', title:'恋人へ', artist:'Lamp', year:2007, c1:'#E8E4D4', c2:'#D4D0C0',
+    tags:['slow','indie','jpop','female','romantic','acoustic','dreamy','nostalgic','minimal'] },
+  { id:'yhs1', title:'春泥棒', artist:'ヨルシカ', year:2019, c1:'#C5D9A8', c2:'#D9E8C5',
+    tags:['fast','indie','jpop','male','emotional','guitar','anthemic','sad','energetic'] },
+
+  // ===== 韓國獨立 (冷門擴充) =====
+  { id:'jnbi1', title:'주저하는 연인들을 위해', artist:'잔나비', year:2019, c1:'#D4C4A4', c2:'#B4A484',
+    tags:['slow','indie','kpop','male','romantic','guitar','nostalgic','emotional','folk','retro'] },
+  { id:'jnbi2', title:'오늘밤은 어둠이 무서워', artist:'잔나비', year:2020, c1:'#2A2A3A', c2:'#5A5A7A',
+    tags:['mid-tempo','indie','kpop','male','dark','guitar','emotional','rock','nostalgic'] },
+  { id:'chz1', title:'그냥', artist:'CHEEZE', year:2018, c1:'#F4E4A4', c2:'#E4D48A',
+    tags:['mid-tempo','indie','kpop','female','sweet','pop','chill','romantic','warm'] },
+  { id:'tncm1', title:'그라데이션', artist:'10cm', year:2017, c1:'#E8D4B4', c2:'#D4C4A4',
+    tags:['mid-tempo','indie','kpop','male','folk','acoustic','romantic','warm','sweet'] },
+  { id:'tncm2', title:'아메리카노', artist:'10cm', year:2010, c1:'#4A2A1A', c2:'#8A5A3A',
+    tags:['mid-tempo','indie','kpop','male','folk','acoustic','chill','warm','happy'] },
+  { id:'jkj1', title:'별 보러 가자', artist:'적재', year:2017, c1:'#1A1A3A', c2:'#3A3A6A',
+    tags:['mid-tempo','indie','kpop','male','romantic','dreamy','piano','sweet','emotional'] },
+  { id:'blks1', title:'걸어가도 좋아', artist:'검정치마', year:2018, c1:'#D4C4B4', c2:'#B4A494',
+    tags:['mid-tempo','indie','kpop','male','guitar','chill','romantic','nostalgic','folk'] },
+  { id:'cold1', title:'A Song Nobody Knows', artist:'Colde', year:2017, c1:'#2A2A3A', c2:'#6A6A9A',
+    tags:['slow','indie','kpop','male','rnb','chill','dreamy','dark','emotional','introspective'] },
+  { id:'sran1', title:'사월이 지나면 우리 헤어져요', artist:'소란', year:2013, c1:'#A8C4D8', c2:'#D4E4F4',
+    tags:['slow','indie','kpop','male','sad','guitar','emotional','nostalgic','ballad','folk'] },
+  { id:'isr1', title:'바람이 분다', artist:'이소라', year:2006, c1:'#D4D4E4', c2:'#B4B4C4',
+    tags:['slow','indie','kpop','female','sad','piano','emotional','nostalgic','ballad','dreamy'] },
+  { id:'ohy1', title:'자전거', artist:'Oohyo', year:2019, c1:'#D4E4C4', c2:'#B4D4A4',
+    tags:['mid-tempo','indie','kpop','female','chill','synth','dreamy','sweet','introspective'] },
+  { id:'sesn2', title:'파란', artist:'새소년', year:2021, c1:'#5A9AB8', c2:'#A8D4E8',
+    tags:['mid-tempo','indie','kpop','female','dreamy','guitar','emotional','introspective','folk'] },
+
+  // ===== 西洋冷門 / 地下 =====
+  { id:'bgtf1', title:'Not', artist:'Big Thief', year:2019, c1:'#C4D4B4', c2:'#A4B494',
+    tags:['mid-tempo','indie','western','female','folk','guitar','emotional','introspective','acoustic'] },
+  { id:'julbk1', title:'Appointments', artist:'Julien Baker', year:2017, c1:'#3A3A4A', c2:'#7A7A8A',
+    tags:['slow','indie','western','female','sad','guitar','emotional','introspective','minimal','acoustic'] },
+  { id:'jasbf1', title:'Everybody Wants to Love You', artist:'Japanese Breakfast', year:2016, c1:'#F4D4C4', c2:'#E4C4B4',
+    tags:['fast','indie','western','female','happy','guitar','energetic','romantic','dreamy'] },
+  { id:'snml1', title:'Pristine', artist:'Snail Mail', year:2018, c1:'#A8C4D4', c2:'#D4E4F0',
+    tags:['mid-tempo','indie','western','female','emotional','guitar','sad','introspective','acoustic'] },
+  { id:'scmm1', title:'Circle the Drain', artist:'Soccer Mommy', year:2020, c1:'#B4A4C4', c2:'#D4C4E4',
+    tags:['mid-tempo','indie','western','female','dark','guitar','sad','emotional','introspective'] },
+  { id:'lcyd1', title:'Thumbs', artist:'Lucy Dacus', year:2018, c1:'#4A3A5A', c2:'#8A7A9A',
+    tags:['slow','indie','western','female','dark','guitar','emotional','powerful','introspective'] },
+  { id:'alxg1', title:'Bobby', artist:'Alex G', year:2017, c1:'#C4D4C4', c2:'#A4B4A4',
+    tags:['mid-tempo','indie','western','male','folk','acoustic','dreamy','chill','introspective'] },
+  { id:'cshr1', title:'Drunk Drivers / Killer Whales', artist:'Car Seat Headrest', year:2016, c1:'#4A5A3A', c2:'#8A9A6A',
+    tags:['fast','indie','western','male','rock','emotional','powerful','anthemic','guitar'] },
+  { id:'anols1', title:'Shut Up Kiss Me', artist:'Angel Olsen', year:2016, c1:'#E4A4A4', c2:'#D48484',
+    tags:['fast','indie','western','female','rock','emotional','energetic','guitar','anthemic'] },
+  { id:'wybl1', title:'Everyday', artist:'Weyes Blood', year:2019, c1:'#C4D4B4', c2:'#A4B494',
+    tags:['slow','indie','western','female','folk','acoustic','dreamy','emotional','sad','introspective'] },
+  { id:'clair1', title:'Sofia', artist:'Clairo', year:2019, c1:'#E4D4B4', c2:'#D4C4A4',
+    tags:['slow','indie','western','female','chill','synth','dreamy','romantic','introspective'] },
+  { id:'clair2', title:'Bags', artist:'Clairo', year:2019, c1:'#C4D4E4', c2:'#A4B4C4',
+    tags:['slow','indie','western','female','acoustic','sad','emotional','romantic','dreamy'] },
+  { id:'mnitr1', title:'Numb', artist:'Men I Trust', year:2019, c1:'#2A3A4A', c2:'#6A8A9A',
+    tags:['slow','indie','western','female','dreamy','synth','chill','dark','introspective'] },
+  { id:'beab1', title:'Care', artist:'beabadoobee', year:2020, c1:'#D4C4E4', c2:'#B4A4D4',
+    tags:['mid-tempo','indie','western','female','guitar','dreamy','romantic','sweet'] },
+  { id:'beab2', title:'Glue Song', artist:'beabadoobee', year:2023, c1:'#F4E4C4', c2:'#E4D4B4',
+    tags:['slow','indie','western','female','acoustic','romantic','sweet','dreamy','chill'] },
+  { id:'esmt1', title:'Between the Bars', artist:'Elliott Smith', year:1997, c1:'#7A7A8A', c2:'#A4A4B4',
+    tags:['slow','indie','western','male','sad','acoustic','emotional','introspective','folk','nostalgic'] },
+  { id:'nkdr1', title:'Pink Moon', artist:'Nick Drake', year:1972, c1:'#C4D4B4', c2:'#D4E4C4',
+    tags:['slow','indie','western','male','folk','acoustic','dreamy','sad','minimal','nostalgic','introspective'] },
+  { id:'bchs1', title:'Space Song', artist:'Beach House', year:2015, c1:'#2A3A6A', c2:'#6A7AB8',
+    tags:['slow','indie','western','female','dreamy','synth','emotional','romantic','dark'] },
+  { id:'bchs2', title:'Myth', artist:'Beach House', year:2012, c1:'#3A4A7A', c2:'#7A8AB8',
+    tags:['slow','indie','western','female','dreamy','synth','emotional','dark','introspective'] },
+  { id:'hovdy1', title:'Wait', artist:'Hovvdy', year:2019, c1:'#D4C4B4', c2:'#B4A494',
+    tags:['slow','indie','western','male','folk','acoustic','sad','emotional','minimal'] },
+  { id:'adrlk1', title:'anything', artist:'Adrianne Lenker', year:2020, c1:'#E4D4B4', c2:'#D4C4A4',
+    tags:['slow','indie','western','female','folk','acoustic','sad','emotional','minimal','introspective'] },
+  { id:'fltm1', title:'Never Let Me Go', artist:'Florence + the Machine', year:2011, c1:'#D4A4C4', c2:'#B48494',
+    tags:['slow','indie','western','female','epic','piano','emotional','powerful','dreamy','dramatic'] },
+  { id:'fltm2', title:'Dog Days Are Over', artist:'Florence + the Machine', year:2009, c1:'#E4C4A4', c2:'#D4A484',
+    tags:['fast','indie','western','female','anthemic','energetic','folk','powerful','emotional','epic'] },
+  { id:'grzb1', title:'Two Weeks', artist:'Grizzly Bear', year:2009, c1:'#3A4A2A', c2:'#6A8A5A',
+    tags:['mid-tempo','indie','western','male','dreamy','folk','emotional','introspective','acoustic'] },
+  { id:'bnitr', title:'Skinny Love', artist:'Bon Iver', year:2008, c1:'#E4D4B4', c2:'#D4C4A4',
+    tags:['slow','indie','western','male','folk','acoustic','sad','emotional','introspective','minimal'] },
+  { id:'joji1', title:'Slow Dancing in the Dark', artist:'Joji', year:2018, c1:'#2A1A2A', c2:'#5A4A6A',
+    tags:['slow','indie','western','male','rnb','dark','dreamy','emotional','sad','introspective'] },
+  { id:'joji2', title:'Glimpse of Us', artist:'Joji', year:2022, c1:'#3A3A4A', c2:'#7A7A8A',
+    tags:['slow','indie','western','male','sad','piano','emotional','introspective','ballad'] },
+  { id:'rexoc2', title:'Best Friend', artist:'Rex Orange County', year:2019, c1:'#C4E4D4', c2:'#A4C4B4',
+    tags:['mid-tempo','indie','western','male','sweet','pop','romantic','happy','chill'] },
+  { id:'waxh1', title:"Can't Do Much", artist:'Waxahatchee', year:2020, c1:'#D4B4A4', c2:'#B49484',
+    tags:['mid-tempo','indie','western','female','folk','guitar','emotional','warm','nostalgic'] },
+  { id:'turnv1', title:'Fazed', artist:'Turnover', year:2015, c1:'#3A4A5A', c2:'#6A8A9A',
+    tags:['mid-tempo','indie','western','male','dreamy','guitar','emotional','chill'] },
+  { id:'lmnd1', title:'Skinny', artist:'Lana Del Rey', year:2023, c1:'#A4B4C4', c2:'#C4D4E4',
+    tags:['slow','indie','western','female','dreamy','introspective','folk','sad','emotional','acoustic'] },
+  { id:'wbld1', title:'Movies', artist:'Weyes Blood', year:2019, c1:'#B4C4D4', c2:'#D4E4F0',
+    tags:['slow','indie','western','female','dreamy','piano','emotional','nostalgic','introspective'] },
+  { id:'lclnt1', title:'Hummingbird', artist:'Local Natives', year:2013, c1:'#A4C4D4', c2:'#D4E4F0',
+    tags:['mid-tempo','indie','western','male','folk','guitar','emotional','dreamy','hopeful'] },
 ];
 
 const TAG_LABEL = {
@@ -1991,6 +2506,72 @@ function closeLimitOverlay() {
   document.getElementById('ad-overlay').classList.remove('open');
 }
 
+// ========== Achievement system ==========
+const ACHIEVEMENTS = [
+  { id:'first',   threshold:1,  icon:'🌱', title:'音樂探索者', desc:'第一次聽完每日推薦，你的音樂旅程正式開始！' },
+  { id:'regular', threshold:3,  icon:'🎧', title:'耳機控',     desc:'連續挑戰 3 次，耳朵已經開始進化了。' },
+  { id:'hunter',  threshold:7,  icon:'🎯', title:'旋律獵人',   desc:'7 次達標，你對好音樂有著敏銳的嗅覺。' },
+  { id:'surfer',  threshold:15, icon:'🌊', title:'音浪衝浪者', desc:'15 次完挑！你已經在音樂的海裡乘浪了。' },
+  { id:'maniac',  threshold:30, icon:'🔥', title:'音樂狂熱者', desc:'30 次！這種熱情讓人嫉妒。' },
+  { id:'legend',  threshold:60, icon:'👑', title:'傳奇樂迷',   desc:'60 次達標。你就是 Vurv 的傳說。' },
+];
+
+function loadMaxedCount() {
+  return parseInt(localStorage.getItem('tuige_maxed') || '0', 10);
+}
+function saveMaxedCount(n) {
+  localStorage.setItem('tuige_maxed', String(n));
+}
+
+function checkAndShowAchievement() {
+  const prev = loadMaxedCount();
+  const next = prev + 1;
+  saveMaxedCount(next);
+
+  // 找到這次剛解鎖的成就（剛好跨過 threshold）
+  const unlocked = ACHIEVEMENTS.filter(a => a.threshold === next);
+  if (unlocked.length === 0) {
+    // 沒有新成就，直接顯示廣告 overlay
+    setTimeout(() => showAdOverlay(), 320);
+    return;
+  }
+
+  const ach = unlocked[0];
+  // 記錄這次剛解鎖的，讓歌單頁可以高亮
+  sessionStorage.setItem('tuige_new_ach', ach.id);
+
+  // 填入內容
+  document.getElementById('ach-icon').textContent = ach.icon;
+  document.getElementById('ach-title').textContent = ach.title;
+  document.getElementById('ach-desc').textContent = ach.desc;
+
+  // 下一個成就進度
+  const nextAch = ACHIEVEMENTS.find(a => a.threshold > next);
+  const nextEl = document.getElementById('ach-next');
+  if (nextAch) {
+    const prevAch = ACHIEVEMENTS.slice().reverse().find(a => a.threshold <= next && a !== ach);
+    const from = prevAch ? prevAch.threshold : 0;
+    const pct = Math.round(((next - from) / (nextAch.threshold - from)) * 100);
+    document.getElementById('ach-next-label').textContent = `距離下一個成就「${nextAch.title}」`;
+    document.getElementById('ach-next-hint').textContent = `${nextAch.icon} 還需達成 ${nextAch.threshold - next} 次`;
+    nextEl.style.display = 'block';
+    // 延遲一點讓動畫有意義
+    setTimeout(() => {
+      document.getElementById('ach-next-fill').style.width = pct + '%';
+    }, 400);
+  } else {
+    nextEl.style.display = 'none'; // 已是最高成就
+  }
+
+  document.getElementById('ach-overlay').classList.add('open');
+}
+
+function closeAchievement() {
+  document.getElementById('ach-overlay').classList.remove('open');
+  // 成就關閉後再顯示每日上限提示
+  setTimeout(() => showAdOverlay(), 200);
+}
+
 // ========== Recommendation logic ==========
 function similarity(seedTags, songTags) {
   const a = new Set(seedTags);
@@ -1998,6 +2579,18 @@ function similarity(seedTags, songTags) {
   const overlap = [...a].filter(t => b.has(t));
   const union = new Set([...a, ...b]);
   return { score: overlap.length / union.size, shared: overlap };
+}
+
+function simLabel(score) {
+  if (score >= 0.55) return '極度契合';
+  if (score >= 0.40) return '非常相似';
+  if (score >= 0.25) return '頗為相似';
+  return '有點相似';
+}
+
+function simStars(score) {
+  const filled = score >= 0.55 ? 5 : score >= 0.40 ? 4 : score >= 0.25 ? 3 : score >= 0.12 ? 2 : 1;
+  return '★'.repeat(filled) + '☆'.repeat(5 - filled);
 }
 
 function rebuildQueue() {
@@ -2272,14 +2865,42 @@ function closeSeedPreview() {
 }
 
 function randomPlay() {
-  const pick = SONGS[Math.floor(Math.random() * SONGS.length)];
+  const excluded = new Set([...state.skipped, ...state.liked.map(l => l.id)]);
+
+  // 先用目前的語言 & 心情篩選器過濾
+  const filtered = SONGS.filter(s => {
+    if (excluded.has(s.id)) return false;
+    if (state.langFilter !== 'all' && !s.tags.includes(state.langFilter)) return false;
+    if (state.moodFilter !== 'all' && !s.tags.includes(state.moodFilter)) return false;
+    return true;
+  });
+
+  let pool, fellBack = false;
+  if (filtered.length > 0) {
+    pool = filtered;
+  } else {
+    // 篩選後沒有歌，退回全曲庫（排除已聽/喜歡）
+    const fallback = SONGS.filter(s => !excluded.has(s.id));
+    pool = fallback.length > 0 ? fallback : SONGS;
+    fellBack = true;
+  }
+
+  const pick = pool[Math.floor(Math.random() * pool.length)];
   state.seed = pick.id;
   state.history = [];
   rebuildQueue();
+
   // 隨機模式不顯示種子歌，隱藏 seed pill
   const pill = document.querySelector('.seed-pill');
   if (pill) pill.style.visibility = 'hidden';
   navTo('discover');
+
+  // 提醒使用者目前的篩選狀態
+  if (fellBack) {
+    showToast('目前篩選條件無結果，已忽略篩選隨機播放');
+  } else if (state.langFilter !== 'all' || state.moodFilter !== 'all') {
+    showToast('已在篩選範圍內隨機選歌');
+  }
 }
 
 function confirmSeed() {
@@ -2302,16 +2923,29 @@ function goHome() {
 // ========== Render: discover ==========
 function renderStack() {
   const stack = document.getElementById('stack');
+  const actions = document.getElementById('card-actions');
   stack.innerHTML = '';
+  if (dailyRemaining() === 0) {
+    stack.innerHTML = `
+      <div class="empty-state">
+        <div class="big">今天的推薦已用完</div>
+        <div>明天再來繼續探索，或觀看廣告解鎖更多</div>
+      </div>`;
+    if (actions) actions.style.visibility = 'hidden';
+    updateQueueUI();
+    return;
+  }
   if (state.queue.length === 0) {
     stack.innerHTML = `
       <div class="empty-state">
         <div class="big">這條推薦線已經逛完了</div>
         <div>調整一下「相似度」或回首頁挑新的種子歌</div>
       </div>`;
+    if (actions) actions.style.visibility = 'hidden';
     updateQueueUI();
     return;
   }
+  if (actions) actions.style.visibility = 'visible';
   // Ghost card underneath for stack visual — no song content, just a shadow layer
   if (state.queue.length > 1) {
     const ghost = document.createElement('div');
@@ -2351,8 +2985,8 @@ function renderStack() {
             ${tags.map(t => `<span class="why-tag">${TAG_LABEL[t] || t}</span>`).join('')}
           </div>
           <div class="why-meter">
-            <div class="bar"><div class="bar-fill" style="width:${Math.round(score*100)}%"></div></div>
-            <div class="pct">${Math.round(score*100)}% 相似</div>
+            <span class="why-stars">${simStars(score)}</span>
+            <span class="sim-badge">${simLabel(score)}</span>
           </div>
         </div>
       </div>
@@ -2366,8 +3000,7 @@ function renderStack() {
 }
 
 function updateQueueUI() {
-  document.getElementById('queue-stats').textContent =
-    `已聽 ${state.history.length} · 喜歡 ${state.liked.length}`;
+  document.getElementById('queue-stats').textContent = '';
   if (state.queue.length === 0) {
     document.getElementById('queue-label').textContent = '快滑完了…';
   } else {
@@ -2424,10 +3057,12 @@ document.addEventListener('touchend', _swipeEnd);
 function attachSwipe(card) {
   if (!card) return;
   card.addEventListener('mousedown', (e) => {
+    if (dailyRemaining() === 0) return;
     drag = { startX: e.clientX, startY: e.clientY, dx: 0, dy: 0, card };
     card.classList.add('dragging');
   });
   card.addEventListener('touchstart', (e) => {
+    if (dailyRemaining() === 0) return;
     const p = e.touches[0];
     drag = { startX: p.clientX, startY: p.clientY, dx: 0, dy: 0, card };
     card.classList.add('dragging');
@@ -2447,6 +3082,7 @@ function finishSwipe(type) {
 }
 
 function reactToCard(type) {
+  if (dailyRemaining() === 0) return;
   const stack = document.getElementById('stack');
   const top = stack.lastElementChild;
   if (!top || !top.dataset.songId) return;
@@ -2472,7 +3108,9 @@ function advanceCard(type, songId) {
   // happens to be the day's last swipe is still saved.
   if (type === 'like' && song) {
     const { score } = topThreeTags(seed, song);
-    state.liked.push({ id: songId, score: Math.round(score * 100) });
+    if (!state.liked.find(l => l.id === songId)) {
+      state.liked.push({ id: songId, score: Math.round(score * 100) });
+    }
     saveLiked();
     showToast(`已加入歌單 · ${song.title}`);
     boostQueue(song.tags, +0.1);
@@ -2491,7 +3129,7 @@ function advanceCard(type, songId) {
   updateDailyUI();
   if (dailyRemaining() === 0) {
     renderStack(); // show empty / remaining cards first
-    setTimeout(() => showAdOverlay(), 320);
+    checkAndShowAchievement();
     return;
   }
 
@@ -2509,6 +3147,7 @@ function boostQueue(tags, delta) {
     .filter(s => {
       if (seen.has(s.id)) return false;
       if (state.langFilter !== 'all' && !s.tags.includes(state.langFilter)) return false;
+      if (state.moodFilter !== 'all' && !s.tags.includes(state.moodFilter)) return false;
       return true;
     })
     .map(s => {
@@ -2745,27 +3384,55 @@ function formatTime(s) {
 }
 
 // ========== Likes ==========
+function switchLikesTab(tab) {
+  document.getElementById('tab-songs').classList.toggle('active', tab === 'songs');
+  document.getElementById('tab-achievements').classList.toggle('active', tab === 'achievements');
+  document.getElementById('panel-songs').classList.toggle('active', tab === 'songs');
+  document.getElementById('panel-achievements').classList.toggle('active', tab === 'achievements');
+  // 切到成就時隱藏排序、count；切回歌曲時還原
+  const sortEl = document.getElementById('likes-sort');
+  const countEl = document.getElementById('likes-count');
+  if (sortEl) sortEl.style.display = tab === 'songs' ? '' : 'none';
+  if (countEl) countEl.style.display = tab === 'songs' ? '' : 'none';
+}
+
 function renderLikes() {
   const list = document.getElementById('liked-list');
   const empty = document.getElementById('empty-likes');
+  const countEl = document.getElementById('likes-count');
   if (state.liked.length === 0) {
     list.innerHTML = '';
     empty.style.display = 'block';
+    if (countEl) countEl.textContent = '';
     return;
   }
   empty.style.display = 'none';
-  const reversed = state.liked.slice().reverse().filter(l => SONGS.find(x => x.id === l.id));
+  if (countEl) countEl.textContent = `${state.liked.length} 首`;
+  const sortBy = document.getElementById('likes-sort')?.value || 'newest';
+  let sorted = state.liked.slice().filter(l => SONGS.find(x => x.id === l.id));
+  if (sortBy === 'newest')      sorted.reverse();
+  else if (sortBy === 'oldest') { /* 保持原順序 */ }
+  else if (sortBy === 'score')  sorted.sort((a, b) => b.score - a.score);
+  else if (sortBy === 'artist') sorted.sort((a, b) => {
+    const sa = SONGS.find(x => x.id === a.id), sb = SONGS.find(x => x.id === b.id);
+    return sa.artist.localeCompare(sb.artist, 'zh-Hant');
+  });
+  else if (sortBy === 'year')   sorted.sort((a, b) => {
+    const sa = SONGS.find(x => x.id === a.id), sb = SONGS.find(x => x.id === b.id);
+    return sb.year - sa.year;
+  });
+  const reversed = sorted;
   list.innerHTML = reversed.map(l => {
     const s = SONGS.find(x => x.id === l.id);
     return `
-      <div class="liked-item" onclick="openStreamSheet('${s.id}')">
+      <div class="liked-item" data-song-id="${s.id}" onclick="openStreamSheet('${s.id}')">
         <div class="liked-cover" id="lc-${s.id}" style="background: linear-gradient(135deg, ${s.c1}, ${s.c2});"></div>
         <div class="liked-info">
           <div class="liked-title">${s.title}</div>
           <div class="liked-artist">${s.artist} · ${s.year}</div>
         </div>
         <div class="liked-pct" style="display:flex;align-items:center;gap:6px;">
-          <span>${l.score}%</span>
+          <span style="font-size:12px;letter-spacing:1px;color:var(--primary);">${simStars(l.score/100)}</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
         <button class="liked-delete" onclick="event.stopPropagation(); removeLiked('${s.id}')" title="從歌單移除">
@@ -2779,6 +3446,36 @@ function renderLikes() {
     const s = SONGS.find(x => x.id === l.id);
     if (s) loadArtwork(s, document.getElementById(`lc-${s.id}`));
   });
+
+  // 長按 & 右鍵 → action sheet
+  list.querySelectorAll('.liked-item').forEach(el => {
+    const id = el.dataset.songId;
+    let pressTimer = null;
+
+    // 觸控長按
+    el.addEventListener('touchstart', () => {
+      el.classList.add('pressing');
+      pressTimer = setTimeout(() => {
+        el.classList.remove('pressing');
+        openLikedActionSheet(id);
+      }, 500);
+    }, { passive: true });
+
+    el.addEventListener('touchend', () => {
+      clearTimeout(pressTimer);
+      el.classList.remove('pressing');
+    });
+    el.addEventListener('touchmove', () => {
+      clearTimeout(pressTimer);
+      el.classList.remove('pressing');
+    });
+
+    // 桌面右鍵
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      openLikedActionSheet(id);
+    });
+  });
 }
 
 function removeLiked(songId) {
@@ -2787,6 +3484,41 @@ function removeLiked(songId) {
   const song = SONGS.find(x => x.id === songId);
   showToast(`已從歌單移除 · ${song ? song.title : ''}`);
   renderLikes();
+}
+
+// ========== 歌單長按 action sheet ==========
+let _actionSongId = null;
+
+function openLikedActionSheet(songId) {
+  _actionSongId = songId;
+  const s = SONGS.find(x => x.id === songId);
+  if (!s) return;
+  // 填入歌曲資訊
+  document.getElementById('la-title').textContent = s.title;
+  document.getElementById('la-artist').textContent = `${s.artist} · ${s.year}`;
+  const cover = document.getElementById('la-cover');
+  cover.style.background = `linear-gradient(135deg, ${s.c1}, ${s.c2})`;
+  loadArtwork(s, cover);
+  document.getElementById('liked-action-overlay').classList.add('open');
+}
+
+function closeLikedActionSheet() {
+  document.getElementById('liked-action-overlay').classList.remove('open');
+  _actionSongId = null;
+}
+
+function setAsSeed(songId) {
+  closeLikedActionSheet();
+  const s = SONGS.find(x => x.id === songId);
+  if (!s) return;
+  state.seed = songId;
+  state.history = [];
+  rebuildQueue();
+  document.getElementById('seed-pill-name').textContent = `${s.title} · ${s.artist}`;
+  const pill = document.querySelector('.seed-pill');
+  if (pill) pill.style.visibility = 'visible';
+  navTo('discover');
+  showToast(`🎯 已從「${s.title}」開始推薦`);
 }
 
 // ========== Streaming Sheet ==========
@@ -2801,16 +3533,28 @@ const STREAMING_SERVICES = [
     url: q => `https://www.kkbox.com/tw/tc/search.php?word=${encodeURIComponent(q)}` },
 ];
 
+let _streamAudio = null;
+let _streamTimer = null;
+let _streamPlaying = false;
+
 function openStreamSheet(songId) {
   const s = SONGS.find(x => x.id === songId);
   if (!s) return;
+
+  // 停掉上一首
+  _stopStreamAudio();
+
+  // 封面
   const streamCover = document.getElementById('stream-cover');
-  streamCover.style.backgroundImage = '';  // clear previous artwork first
+  streamCover.style.backgroundImage = '';
   streamCover.style.background = `linear-gradient(135deg, ${s.c1}, ${s.c2})`;
-  loadArtwork(s, streamCover);  // async: overwrites gradient when ready
+  loadArtwork(s, streamCover);
+
+  // 文字
   document.getElementById('stream-title').textContent = s.title;
   document.getElementById('stream-artist').textContent = `${s.artist} · ${s.year}`;
 
+  // 串流按鈕
   const q = `${s.title} ${s.artist}`;
   document.getElementById('stream-btns').innerHTML = STREAMING_SERVICES.map(svc => `
     <a class="stream-btn" href="${svc.url(q)}" target="_blank" rel="noopener" onclick="closeStreamSheet()">
@@ -2820,11 +3564,72 @@ function openStreamSheet(songId) {
     </a>
   `).join('');
 
+  // 重置播放器 UI，先隱藏等確認有 preview 再顯示
+  const playerEl = document.getElementById('stream-player');
+  playerEl.style.display = 'none';
+  _setStreamPlayIcon(false);
+  document.getElementById('stream-fill').style.width = '0%';
+  document.getElementById('stream-ts').textContent = '0:00 / 0:30';
+  document.getElementById('stream-loading').style.display = 'none';
+
+  // 抓 preview URL，有才顯示播放器
+  fetchPreview(s).then(url => {
+    if (!url) return; // 沒有試聽就靜靜不顯示
+    _streamAudio = new Audio(url);
+    _streamAudio.volume = state.volume / 100;
+    _streamAudio.addEventListener('ended', () => _stopStreamAudio());
+    playerEl.style.display = 'block';
+  }).catch(() => {
+    // 同上，找不到就不顯示
+  });
+
   document.getElementById('stream-backdrop').classList.add('open');
   document.getElementById('stream-sheet').classList.add('open');
 }
 
+function toggleStreamPlay() {
+  if (_streamPlaying) {
+    _streamAudio?.pause();
+    clearInterval(_streamTimer);
+    _streamPlaying = false;
+    _setStreamPlayIcon(false);
+  } else {
+    if (!_streamAudio) return;
+    _streamAudio.play().catch(() => {});
+    _streamPlaying = true;
+    _setStreamPlayIcon(true);
+    _streamTimer = setInterval(() => {
+      if (!_streamAudio) return;
+      const t = Math.min(_streamAudio.currentTime, 30);
+      const pct = (t / 30) * 100;
+      document.getElementById('stream-fill').style.width = pct + '%';
+      document.getElementById('stream-ts').textContent = `${formatTime(t)} / 0:30`;
+      if (t >= 30) _stopStreamAudio();
+    }, 250);
+  }
+}
+
+function _setStreamPlayIcon(playing) {
+  const icon = document.getElementById('stream-play-icon');
+  if (!icon) return;
+  icon.innerHTML = playing
+    ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+    : '<polygon points="5,3 19,12 5,21"/>';
+}
+
+function _stopStreamAudio() {
+  clearInterval(_streamTimer);
+  _streamTimer = null;
+  if (_streamAudio) { _streamAudio.pause(); _streamAudio.currentTime = 0; }
+  _streamPlaying = false;
+  _setStreamPlayIcon(false);
+  document.getElementById('stream-fill').style.width = '0%';
+  document.getElementById('stream-ts').textContent = '0:00 / 0:30';
+}
+
 function closeStreamSheet() {
+  _stopStreamAudio();
+  _streamAudio = null;
   document.getElementById('stream-backdrop').classList.remove('open');
   document.getElementById('stream-sheet').classList.remove('open');
 }
@@ -2846,12 +3651,15 @@ function navTo(name) {
           </div>
           <button onclick="navTo('home')" style="margin-top: 24px; padding: 11px 24px; background: var(--primary); color: #fff; border: none; border-radius: 99px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;">回首頁選歌</button>
         </div>`;
+      const actions = document.getElementById('card-actions');
+      if (actions) actions.style.visibility = 'hidden';
       updateDailyUI();
     }
     else { renderStack(); updateDailyUI(); }
   } else if (name === 'likes') {
     stopFakePlay();
     renderLikes();
+    _renderAchievementList();
   } else if (name === 'home') {
     stopFakePlay();
     stopSeedPlay();
@@ -2872,8 +3680,63 @@ function openSettings() {
   _pendingSim  = state.similarity;
   _pendingVol  = parseFloat(localStorage.getItem('tuige_volume')) || audio.volume * 100;
   _snapDark    = document.getElementById('dark-toggle').checked;
+  // 更新資料管理的數量顯示
+  const skEl = document.getElementById('skipped-count');
+  const lkEl = document.getElementById('liked-count-settings');
+  if (skEl) skEl.textContent = state.skipped.length ? `${state.skipped.length} 首` : '無';
+  if (lkEl) lkEl.textContent = state.liked.length ? `${state.liked.length} 首` : '無';
   document.getElementById('sheet-backdrop').classList.add('open');
   document.getElementById('sheet').classList.add('open');
+}
+
+function _renderAchievementList() {
+  const maxed = loadMaxedCount();
+  const newId = sessionStorage.getItem('tuige_new_ach');
+  const el = document.getElementById('ach-list');
+  if (!el) return;
+  el.innerHTML = ACHIEVEMENTS.map(a => {
+    const unlocked = maxed >= a.threshold;
+    const isNew = unlocked && a.id === newId;
+    const border = isNew ? `border:2px solid var(--primary);box-shadow:0 0 0 4px var(--primary-50);` : `border:2px solid transparent;`;
+    return `
+      <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:${isNew ? 'var(--primary-50)' : 'var(--surface-2)'};border-radius:var(--radius);opacity:${unlocked ? '1' : '0.4'};${border}transition:all .3s;">
+        <span style="font-size:28px;line-height:1;filter:${unlocked ? 'none' : 'grayscale(1)'};">${a.icon}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:var(--text);">${a.title}</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:2px;">達成 ${a.threshold} 次每日挑戰</div>
+        </div>
+        ${isNew
+          ? `<span style="font-size:11px;font-weight:700;color:#fff;background:var(--primary);padding:3px 8px;border-radius:20px;animation:achBounce .4s both;">NEW ✨</span>`
+          : unlocked
+            ? `<span style="font-size:11px;font-weight:600;color:var(--primary);background:var(--primary-50);padding:3px 8px;border-radius:20px;">已解鎖</span>`
+            : `<span style="font-size:11px;color:var(--text-3);">${maxed}／${a.threshold}</span>`
+        }
+      </div>`;
+  }).join('');
+  // 看完就清掉，只高亮一次
+  if (newId) sessionStorage.removeItem('tuige_new_ach');
+}
+
+function clearSkipped() {
+  if (state.skipped.length === 0) { showToast('沒有跳過記錄'); return; }
+  const n = state.skipped.length;
+  state.skipped = [];
+  saveSkipped();
+  const skEl = document.getElementById('skipped-count');
+  if (skEl) skEl.textContent = '無';
+  showToast(`已清除 ${n} 首跳過記錄`);
+  renderHome();
+}
+
+function clearLiked() {
+  if (state.liked.length === 0) { showToast('歌單已經是空的'); return; }
+  if (!confirm(`確定要清除全部 ${state.liked.length} 首歌單？`)) return;
+  state.liked = [];
+  saveLiked();
+  const lkEl = document.getElementById('liked-count-settings');
+  if (lkEl) lkEl.textContent = '無';
+  renderLikes();
+  showToast('歌單已清除');
 }
 
 function cancelSettings() {
