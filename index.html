@@ -65,6 +65,7 @@
     margin: 0 auto;
     height: 100vh;        /* fallback */
     height: 100dvh;       /* iOS Safari 等動態視窗,扣掉網址列才不會超出 */
+    box-sizing: border-box; /* padding 不再撐大高度，footer 才會置底 */
     display: flex;
     flex-direction: column;
     background: var(--bg);
@@ -265,7 +266,6 @@
     flex-direction: column;
     cursor: grab;
     user-select: none;
-    touch-action: none;
     transition: transform .35s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
     will-change: transform;
     -webkit-backface-visibility: hidden;
@@ -586,6 +586,16 @@
     font-size: 15px;
   }
   .liked-delete:hover { background: #FFE5E5; color: #D94040; }
+  .liked-delete.confirm-state {
+    background: #D94040;
+    color: #fff;
+    width: auto;
+    border-radius: 12px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
 
   /* 長按 action sheet */
   .liked-action-overlay {
@@ -1748,13 +1758,16 @@
       </div>
     </div>
 
-    <div class="slider-row">
+    <div class="slider-row" id="vol-row">
       <div class="slider-label">
         <span class="key">音量</span>
         <span class="val" id="vol-val">85%</span>
       </div>
       <input type="range" min="0" max="100" value="85" id="vol-slider" />
       <div class="ends"><span>🔇</span><span>🔊</span></div>
+    </div>
+    <div id="vol-ios-hint" style="display:none;font-size:12px;color:var(--text-3);padding:2px 0 8px;line-height:1.5;">
+      📱 iOS 不支援透過 App 調整音量，請使用手機側邊音量鍵。
     </div>
 
     <div class="toggle-row">
@@ -3077,6 +3090,10 @@ function attachSwipe(card) {
   };
   card.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
   card.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+  // non-passive：拖動中阻止 iOS 捲動頁面，讓卡片手勢優先
+  card.addEventListener('touchmove', (e) => {
+    if (drag) e.preventDefault();
+  }, { passive: false });
 }
 
 function finishSwipe(type) {
@@ -3445,7 +3462,7 @@ function renderLikes() {
           <span style="font-size:12px;letter-spacing:1px;color:var(--primary);">${simStars(l.score/100)}</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
-        <button class="liked-delete" onclick="event.stopPropagation(); removeLiked('${s.id}')" title="從歌單移除">
+        <button class="liked-delete" onclick="event.stopPropagation(); confirmDelete(this, '${s.id}')" title="從歌單移除">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
         </button>
       </div>
@@ -3494,6 +3511,33 @@ function removeLiked(songId) {
   const song = SONGS.find(x => x.id === songId);
   showToast(`已從歌單移除 · ${song ? song.title : ''}`);
   renderLikes();
+}
+
+// 兩段式刪除防呆：第一下進入確認狀態，2.5 秒內再按才真正刪除
+let _deleteTimer = null;
+let _deletePending = null;
+function confirmDelete(btn, songId) {
+  // 如果有別的按鈕在確認中，先還原它
+  if (_deletePending && _deletePending !== btn) {
+    _resetDeleteBtn(_deletePending);
+  }
+  if (_deletePending === btn) {
+    // 第二下：確認刪除
+    clearTimeout(_deleteTimer);
+    _deletePending = null;
+    removeLiked(songId);
+  } else {
+    // 第一下：進入確認狀態
+    _deletePending = btn;
+    btn.classList.add('confirm-state');
+    btn.innerHTML = '確定？';
+    _deleteTimer = setTimeout(() => _resetDeleteBtn(btn), 2500);
+  }
+}
+function _resetDeleteBtn(btn) {
+  btn.classList.remove('confirm-state');
+  btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+  if (_deletePending === btn) _deletePending = null;
 }
 
 // ========== 歌單長按 action sheet ==========
@@ -3805,6 +3849,16 @@ const volVal    = document.getElementById('vol-val');
   volSlider.value = v;
   volVal.textContent = v + '%';
   audio.volume = v / 100;
+
+  // iOS 不允許 JS 控制音量：偵測後隱藏 slider，顯示提示
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    const row = document.getElementById('vol-row');
+    const hint = document.getElementById('vol-ios-hint');
+    if (row) row.style.display = 'none';
+    if (hint) hint.style.display = 'block';
+  }
 })();
 volSlider.addEventListener('input', e => {
   _pendingVol = +e.target.value;
