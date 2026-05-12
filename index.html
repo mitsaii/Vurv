@@ -80,7 +80,7 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 14px 18px max(90px, calc(70px + env(safe-area-inset-bottom)));
+    padding: 14px 18px max(72px, calc(52px + env(safe-area-inset-bottom)));
     display: none;
     animation: fadeIn .25s ease;
   }
@@ -690,27 +690,28 @@
     border-top: 0.5px solid var(--border);
     display: flex;
     justify-content: space-around;
-    padding: 8px 8px max(34px, env(safe-area-inset-bottom));
-    z-index: 30;
+    /* 只加 safe area — button 自己帶內距，背景自然延伸到底 */
+    padding: 0 0 env(safe-area-inset-bottom);
+    z-index: 1000;
   }
   .nav-btn {
     flex: 1;
     background: none;
     border: none;
-    padding: 8px 4px;
+    padding: 10px 4px 8px;
     cursor: pointer;
     color: var(--text-3);
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     transition: color .15s;
   }
   .nav-btn.active { color: var(--primary); }
   .nav-icon {
-    width: 22px; height: 22px;
+    width: 24px; height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3922,6 +3923,19 @@ document.getElementById('lang-chips').addEventListener('click', e => {
 });
 
 // ========== Toast ==========
+// 確保 bottom-nav 實際貼底 — 量測 nav 高度後動態設 screen padding
+(function fixNavHeight() {
+  const nav = document.querySelector('.bottom-nav');
+  const setScreenPad = () => {
+    const h = nav.getBoundingClientRect().height;
+    document.querySelectorAll('.screen').forEach(s => {
+      s.style.paddingBottom = (h + 8) + 'px';
+    });
+  };
+  setScreenPad();
+  window.addEventListener('resize', setScreenPad);
+})();
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
