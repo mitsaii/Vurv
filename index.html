@@ -692,7 +692,21 @@
     justify-content: space-around;
     /* 只加 safe area — button 自己帶內距，背景自然延伸到底 */
     padding: 0 0 env(safe-area-inset-bottom);
+    /* fallback for older iOS */
+    padding: 0 0 constant(safe-area-inset-bottom);
+    padding: 0 0 env(safe-area-inset-bottom);
     z-index: 1000;
+    /* 初始隱藏，等 splash 結束後才淡入 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    /* 確保不因任何原因浮起 */
+    margin-bottom: 0;
+    transform: none;
+  }
+  .bottom-nav.nav-ready {
+    opacity: 1;
+    pointer-events: auto;
   }
   .nav-btn {
     flex: 1;
@@ -3960,13 +3974,22 @@ loadSkipped();
 state.daily = loadDaily();
 renderHome();
 
-// Splash: fade out after 2 s
+// Splash: fade out after 2 s，結束後才顯示 bottom-nav
 (function initSplash() {
   const splash = document.getElementById('splash');
-  if (!splash) return;
+  const nav = document.querySelector('.bottom-nav');
+  if (!splash) {
+    // 沒有 splash 就直接顯示
+    if (nav) nav.classList.add('nav-ready');
+    return;
+  }
   setTimeout(() => {
     splash.classList.add('hidden');
-    setTimeout(() => { if (splash.parentNode) splash.remove(); }, 420);
+    setTimeout(() => {
+      if (splash.parentNode) splash.remove();
+      // splash 完全消失後才讓 nav 淡入
+      if (nav) nav.classList.add('nav-ready');
+    }, 420);
   }, 2000);
 })();
 </script>
