@@ -682,27 +682,24 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Bottom nav */
+  /* Bottom nav — flex child，永遠自然貼在 .app 最底部，無需 fixed */
   .bottom-nav {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
+    flex-shrink: 0;
+    width: 100%;
     background: var(--surface);
     border-top: 0.5px solid var(--border);
     display: flex;
     justify-content: space-around;
-    /* 只加 safe area — button 自己帶內距，背景自然延伸到底 */
-    padding: 0 0 env(safe-area-inset-bottom);
-    /* fallback for older iOS */
+    align-items: flex-end;   /* 按鈕推到底部 */
+    /* 明確給 nav 一個比按鈕高的高度，flex-end 才有空間發揮 */
+    min-height: calc(52px + env(safe-area-inset-bottom));
     padding: 0 0 constant(safe-area-inset-bottom);
     padding: 0 0 env(safe-area-inset-bottom);
-    z-index: 1000;
+    z-index: 100;
     /* 初始隱藏，等 splash 結束後才淡入 */
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s ease;
-    /* 確保不因任何原因浮起 */
-    margin-bottom: 0;
-    transform: none;
   }
   .bottom-nav.nav-ready {
     opacity: 1;
@@ -712,7 +709,7 @@
     flex: 1;
     background: none;
     border: none;
-    padding: 10px 4px 8px;
+    padding: 0 4px 4px;
     cursor: pointer;
     color: var(--text-3);
     font-family: inherit;
@@ -1841,24 +1838,22 @@
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
+  <!-- BOTTOM NAV：放在 .app flex 尾端，自然貼底，不需要 fixed -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" data-screen="home" onclick="navTo('home')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      首頁
+    </button>
+    <button class="nav-btn" data-screen="discover" onclick="navTo('discover')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
+      探索
+    </button>
+    <button class="nav-btn" data-screen="likes" onclick="navTo('likes')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+      歌單
+    </button>
+  </div>
 
-</div>
-
-<!-- bottom-nav 移到 .app 外，避免 iOS overflow:hidden 干擾 fixed 定位 -->
-<div class="bottom-nav">
-  <button class="nav-btn active" data-screen="home" onclick="navTo('home')">
-    <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-    首頁
-  </button>
-  <button class="nav-btn" data-screen="discover" onclick="navTo('discover')">
-    <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
-    探索
-  </button>
-  <button class="nav-btn" data-screen="likes" onclick="navTo('likes')">
-    <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-    歌單
-  </button>
 </div>
 
 <script>
