@@ -55,7 +55,7 @@
   html, body { height: 100%; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", sans-serif;
-    background: var(--bg);
+    background: var(--surface); /* 跟 bottom-nav 同色，填滿底部安全區 */
     color: var(--text);
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
@@ -690,10 +690,7 @@
     border-top: 0.5px solid var(--border);
     display: flex;
     justify-content: space-around;
-    padding: 8px
-            max(8px, env(safe-area-inset-right))
-            calc(6px + env(safe-area-inset-bottom))
-            max(8px, env(safe-area-inset-left));
+    padding: 8px 8px max(34px, env(safe-area-inset-bottom));
     z-index: 30;
   }
   .nav-btn {
