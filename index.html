@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Vurv" />
 <meta name="theme-color" content="#534AB7" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4668297380257099"
         crossorigin="anonymous"></script>
@@ -856,6 +857,35 @@
   }
   .stream-sheet.open { transform: translateY(0); }
 
+  /* 分享按鈕 */
+  .share-trigger-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; margin: 0 0 12px;
+    padding: 13px;
+    background: var(--surface-2);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    font-size: 15px; font-weight: 600;
+    color: var(--text);
+    cursor: pointer; font-family: inherit;
+    transition: opacity .15s;
+  }
+  .share-trigger-btn:active { opacity: .7; }
+
+  /* 分享卡（畫面外，html2canvas 捕捉用） */
+  #share-card-wrap {
+    position: fixed;
+    left: -9999px; top: 0;
+    z-index: -1;
+    width: 540px; height: 960px;
+    pointer-events: none;
+  }
+  #share-card {
+    width: 540px; height: 960px;
+    position: relative; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  }
+  #share-card * { box-sizing: border-box; }
 
   .stream-sheet .handle {
     width: 36px; height: 4px;
@@ -1639,6 +1669,36 @@
   </div>
 
   <!-- STREAMING LINKS SHEET -->
+<!-- 分享卡（畫面外，html2canvas 用） -->
+<div id="share-card-wrap">
+  <div id="share-card">
+    <!-- 背景漸層 -->
+    <div id="sc-bg" style="position:absolute;inset:0;"></div>
+    <!-- 暗色遮罩 -->
+    <div style="position:absolute;inset:0;background:linear-gradient(170deg,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0.55) 100%);"></div>
+    <!-- 裝飾大圓圈 -->
+    <div id="sc-orb1" style="position:absolute;width:480px;height:480px;border-radius:50%;top:-120px;right:-140px;opacity:0.22;"></div>
+    <div id="sc-orb2" style="position:absolute;width:320px;height:320px;border-radius:50%;bottom:80px;left:-100px;opacity:0.15;"></div>
+    <!-- 內容 -->
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 52px;text-align:center;">
+      <!-- Vurv 品牌 -->
+      <div style="position:absolute;top:56px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.55);font-size:13px;font-weight:700;letter-spacing:3px;">VURV</div>
+      <!-- 中央色圈 -->
+      <div id="sc-centerorb" style="width:164px;height:164px;border-radius:50%;margin-bottom:44px;box-shadow:0 0 80px rgba(255,255,255,0.18),0 0 0 1px rgba(255,255,255,0.1);"></div>
+      <!-- 歌名 -->
+      <div id="sc-title" style="font-size:40px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:14px;text-shadow:0 3px 16px rgba(0,0,0,0.45);word-break:break-word;"></div>
+      <!-- 歌手 -->
+      <div id="sc-artist" style="font-size:20px;font-weight:500;color:rgba(255,255,255,0.72);margin-bottom:44px;"></div>
+      <!-- 分隔線 -->
+      <div style="width:36px;height:1.5px;background:rgba(255,255,255,0.28);margin-bottom:28px;border-radius:2px;"></div>
+      <!-- 推薦語 -->
+      <div id="sc-tagline" style="font-size:17px;color:rgba(255,255,255,0.60);line-height:1.65;max-width:320px;"></div>
+    </div>
+    <!-- 底部連結 -->
+    <div style="position:absolute;bottom:52px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.35);font-size:12px;letter-spacing:2.5px;font-weight:600;">VURV.VERCEL.APP</div>
+  </div>
+</div>
+
   <div class="sheet-backdrop" id="stream-backdrop" onclick="closeStreamSheet()"></div>
   <div class="stream-sheet" id="stream-sheet">
     <div class="handle"></div>
@@ -1664,6 +1724,10 @@
       <div class="stream-loading" id="stream-loading">載入試聽中…</div>
     </div>
 
+    <button class="share-trigger-btn" id="share-trigger-btn" onclick="shareCard()">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      分享到限動 / 脆
+    </button>
     <div class="stream-label">選擇平台收聽</div>
     <div class="stream-btns" id="stream-btns"></div>
   </div>
@@ -3640,6 +3704,9 @@ function openStreamSheet(songId) {
     // 同上，找不到就不顯示
   });
 
+  // 準備分享卡
+  _prepareShareCard(s);
+
   document.getElementById('stream-backdrop').classList.add('open');
   document.getElementById('stream-sheet').classList.add('open');
 }
@@ -3968,6 +4035,103 @@ document.getElementById('mood-chips').addEventListener('click', e => {
 });
 
 
+
+// ========== 分享卡片 ==========
+let _shareSong = null;
+
+const _TAGLINES = {
+  sad:        ['有些情緒需要被聽見', '傷心的時候，這首陪著你', '情緒沒有對錯，只有這首歌'],
+  romantic:   ['送給最近讓你心動的人', '今晚要用這首暖心', '愛情就是這個音'],
+  chill:      ['什麼都不用想，就聽', '讓頻率帶著你走', '放空的最佳伴侶'],
+  electronic: ['插上耳機，換個頻道', '城市的夜，你的耳機', '讓節拍主導這一刻'],
+  jazz:       ['今晚的氛圍交給它', '一杯咖啡配這首', '時光慢一點就好'],
+  hiphop:     ['今天的你，需要這個能量', '這首就是你現在的心情', '找到那個節奏了'],
+  indie:      ['找到一首只屬於你的歌', '還好有這首', '就這首，沒有其他理由'],
+  default:    ['Vurv 覺得你現在需要聽這首', '今天的你，需要這個聲音', '就是這首了']
+};
+function _pickTagline(tags = []) {
+  const t = tags.join(' ');
+  if (/sad|melancholy|heartbreak|emotional|tear/.test(t)) return _rand(_TAGLINES.sad);
+  if (/romantic|love|sweet|crush/.test(t)) return _rand(_TAGLINES.romantic);
+  if (/chill|relax|lo-fi|bedroom|ambient/.test(t)) return _rand(_TAGLINES.chill);
+  if (/electronic|synth|edm|dance/.test(t)) return _rand(_TAGLINES.electronic);
+  if (/jazz|soul|blues/.test(t)) return _rand(_TAGLINES.jazz);
+  if (/hip-hop|hiphop|rap|trap/.test(t)) return _rand(_TAGLINES.hiphop);
+  if (/indie|folk|acoustic/.test(t)) return _rand(_TAGLINES.indie);
+  return _rand(_TAGLINES.default);
+}
+function _rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function _prepareShareCard(song) {
+  _shareSong = song;
+  // 背景
+  document.getElementById('sc-bg').style.background = `linear-gradient(140deg, ${song.c1} 0%, ${song.c2} 100%)`;
+  // 裝飾球
+  document.getElementById('sc-orb1').style.background = song.c1;
+  document.getElementById('sc-orb2').style.background = song.c2;
+  // 中央色圈：反轉漸層，製造對比
+  document.getElementById('sc-centerorb').style.background = `radial-gradient(circle at 35% 35%, ${song.c2}, ${song.c1})`;
+  // 文字
+  document.getElementById('sc-title').textContent = song.title;
+  document.getElementById('sc-artist').textContent = song.artist;
+  document.getElementById('sc-tagline').textContent = _pickTagline(song.tags);
+}
+
+async function shareCard() {
+  if (!_shareSong) return;
+  const btn = document.getElementById('share-trigger-btn');
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = '生成中...';
+
+  try {
+    // 等 html2canvas 載入（已 defer，確保 DOM ready 後可用）
+    let tries = 0;
+    while (!window.html2canvas && tries++ < 30) await new Promise(r => setTimeout(r, 100));
+    if (!window.html2canvas) throw new Error('html2canvas 未載入');
+
+    const el = document.getElementById('share-card');
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      useCORS: false,
+      allowTaint: true,
+      backgroundColor: null,
+      width: 540,
+      height: 960,
+      logging: false
+    });
+
+    await new Promise((resolve, reject) => {
+      canvas.toBlob(async blob => {
+        try {
+          const file = new File([blob], 'vurv-share.png', { type: 'image/png' });
+          if (navigator.share && navigator.canShare?.({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: `${_shareSong.title} — ${_shareSong.artist}`,
+              text: '用 Vurv 發現的歌 🎵  vurv.vercel.app'
+            });
+          } else {
+            // 桌機 fallback：直接下載
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `vurv-${_shareSong.title}.png`;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+            showToast('已下載！存到相簿後再分享 📸');
+          }
+          resolve();
+        } catch(e) { reject(e); }
+      }, 'image/png');
+    });
+  } catch(e) {
+    console.error(e);
+    if (e.name !== 'AbortError') showToast('分享失敗，請再試一次');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+  }
+}
 
 // init
 loadLiked();
