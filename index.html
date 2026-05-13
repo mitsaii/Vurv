@@ -912,6 +912,30 @@
     cursor: pointer; width: calc(100% - 40px); transition: opacity .15s;
   }
   .vibe-play-btn:active { opacity: .8; }
+  .vibe-spotify-btn {
+    margin: 8px 20px max(16px, env(safe-area-inset-bottom)); padding: 14px;
+    background: #1DB954; color: #fff;
+    border: none; border-radius: 14px; font-size: 15px; font-weight: 600;
+    cursor: pointer; width: calc(100% - 40px); display: flex; align-items: center;
+    justify-content: center; gap: 8px; transition: opacity .15s;
+  }
+  .vibe-spotify-btn:active { opacity: .8; }
+  .vibe-spotify-btn:disabled { opacity: .5; cursor: not-allowed; }
+  /* Spotify 建立中 overlay */
+  #spotify-loading {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,.6); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  #spotify-loading.show { opacity: 1; pointer-events: all; }
+  #spotify-loading .sp-spinner {
+    width: 44px; height: 44px; border: 3px solid rgba(255,255,255,.2);
+    border-top-color: #1DB954; border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  #spotify-loading p { color: #fff; font-size: 15px; font-weight: 500; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .stream-sheet .handle {
     width: 36px; height: 4px;
@@ -1922,6 +1946,16 @@
   </div>
   <div class="vibe-song-list" id="vibe-song-list"></div>
   <button class="vibe-play-btn" onclick="vibeShufflePlay()">✦ 隨機播放這個歌單</button>
+  <button class="vibe-spotify-btn" id="spotify-create-btn" onclick="spotifyCreatePlaylist()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+    加入 Spotify 歌單
+  </button>
+</div>
+
+<!-- Spotify 建立中 loading -->
+<div id="spotify-loading">
+  <div class="sp-spinner"></div>
+  <p id="spotify-loading-msg">正在建立歌單...</p>
 </div>
 
 <!-- nav 放 .app 外，避免 iOS overflow:hidden 裁掉 fixed 元素 -->
@@ -4051,6 +4085,105 @@ document.getElementById('mood-chips').addEventListener('click', e => {
   _pendingMood = chip.dataset.mood;
 });
 
+// ========== Spotify 整合 ==========
+const SP_CLIENT_ID   = 'fc93027dad9746c5a3d6bf849d302cc3';
+const SP_REDIRECT    = 'https://vurv.vercel.app/';
+const SP_SCOPES      = 'playlist-modify-public playlist-modify-private';
+
+function _spRand() {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return btoa(String.fromCharCode(...arr)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+}
+async function _spChallenge(v) {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+  return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+}
+
+async function spotifyCreatePlaylist() {
+  if (!_currentVibe) return;
+  const verifier = _spRand();
+  localStorage.setItem('sp_verifier', verifier);
+  localStorage.setItem('sp_vibe', _currentVibe.id);
+  const challenge = await _spChallenge(verifier);
+  const p = new URLSearchParams({
+    client_id: SP_CLIENT_ID, response_type: 'code',
+    redirect_uri: SP_REDIRECT, code_challenge_method: 'S256',
+    code_challenge: challenge, scope: SP_SCOPES
+  });
+  window.location.href = 'https://accounts.spotify.com/authorize?' + p;
+}
+
+async function _spToken(code) {
+  const r = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: SP_CLIENT_ID, grant_type: 'authorization_code',
+      code, redirect_uri: SP_REDIRECT,
+      code_verifier: localStorage.getItem('sp_verifier')
+    })
+  });
+  return (await r.json()).access_token;
+}
+
+function _spMsg(msg) { document.getElementById('spotify-loading-msg').textContent = msg; }
+
+async function _spBuild(token, vibe) {
+  _spMsg('搜尋歌曲中...');
+  const songs = vibe.songs.map(id => SONGS.find(s => s.id === id)).filter(Boolean);
+  const uris = [];
+  for (const s of songs) {
+    const q = encodeURIComponent(`track:${s.title} artist:${s.artist}`);
+    const r = await fetch(`https://api.spotify.com/v1/search?q=${q}&type=track&limit=1`,
+      { headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    const uri = d.tracks?.items?.[0]?.uri;
+    if (uri) uris.push(uri);
+  }
+  _spMsg('建立歌單中...');
+  const me = await (await fetch('https://api.spotify.com/v1/me',
+    { headers: { Authorization: `Bearer ${token}` } })).json();
+  const pl = await (await fetch(`https://api.spotify.com/v1/users/${me.id}/playlists`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: `${vibe.emoji} ${vibe.title}`, description: '由 Vurv 建立的情境歌單', public: false })
+  })).json();
+  if (uris.length) {
+    await fetch(`https://api.spotify.com/v1/playlists/${pl.id}/tracks`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uris })
+    });
+  }
+  return { url: pl.external_urls.spotify, found: uris.length, total: songs.length };
+}
+
+async function handleSpotifyCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const vibeId = localStorage.getItem('sp_vibe');
+  if (!code || !vibeId) return;
+  window.history.replaceState({}, '', '/');
+  localStorage.removeItem('sp_vibe');
+  const vibe = VIBES.find(v => v.id === vibeId);
+  if (!vibe) return;
+  const loading = document.getElementById('spotify-loading');
+  loading.classList.add('show');
+  _spMsg('連線 Spotify 中...');
+  try {
+    const token = await _spToken(code);
+    localStorage.removeItem('sp_verifier');
+    const result = await _spBuild(token, vibe);
+    loading.classList.remove('show');
+    showToast(`✓ 歌單建立完成！找到 ${result.found}/${result.total} 首`);
+    setTimeout(() => window.open(result.url, '_blank'), 600);
+  } catch(e) {
+    loading.classList.remove('show');
+    showToast('建立失敗，請再試一次');
+  }
+}
+
 // ========== 情境歌單 ==========
 const VIBES = [
   {
@@ -4168,6 +4301,7 @@ loadSkipped();
 state.daily = loadDaily();
 renderHome();
 renderVibes();
+handleSpotifyCallback();
 
 // Splash: fade out after 2 s，結束後才顯示 bottom-nav
 (function initSplash() {
