@@ -4102,6 +4102,8 @@ async function _spChallenge(v) {
 
 async function spotifyCreatePlaylist() {
   if (!_currentVibe) return;
+  // 清除舊的 token 快取，確保重新授權
+  localStorage.removeItem('sp_verifier');
   const verifier = _spRand();
   localStorage.setItem('sp_verifier', verifier);
   localStorage.setItem('sp_vibe', _currentVibe.id);
@@ -4109,7 +4111,8 @@ async function spotifyCreatePlaylist() {
   const p = new URLSearchParams({
     client_id: SP_CLIENT_ID, response_type: 'code',
     redirect_uri: SP_REDIRECT, code_challenge_method: 'S256',
-    code_challenge: challenge, scope: SP_SCOPES
+    code_challenge: challenge, scope: SP_SCOPES,
+    prompt: 'consent'  // 每次強制顯示授權頁，確保 scopes 是最新的
   });
   window.location.href = 'https://accounts.spotify.com/authorize?' + p;
 }
@@ -4130,32 +4133,50 @@ async function _spToken(code) {
 function _spMsg(msg) { document.getElementById('spotify-loading-msg').textContent = msg; }
 
 async function _spBuild(token, vibe) {
+  const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const spFetch = (url, opts = {}) => fetch(url, { ...opts, headers: { ...h, ...opts.headers }, cache: 'no-store' });
+
+  // 1. 取得用戶資料
+  _spMsg('取得用戶資料中...');
+  const meRes = await spFetch('https://api.spotify.com/v1/me');
+  const me = await meRes.json();
+  if (me.error) throw new Error(`無法取得用戶資料（${me.error.status}：${me.error.message}）\n請確認你的 Spotify 帳號已加入測試用戶。`);
+  if (!me.id) throw new Error('無法取得用戶 ID，請重新授權');
+
+  // 2. 搜尋歌曲
   _spMsg('搜尋歌曲中...');
   const songs = vibe.songs.map(id => SONGS.find(s => s.id === id)).filter(Boolean);
   const uris = [];
   for (const s of songs) {
     const q = encodeURIComponent(`track:${s.title} artist:${s.artist}`);
-    const r = await fetch(`https://api.spotify.com/v1/search?q=${q}&type=track&limit=1`,
-      { headers: { Authorization: `Bearer ${token}` } });
+    const r = await spFetch(`https://api.spotify.com/v1/search?q=${q}&type=track&limit=1`);
     const d = await r.json();
+    if (d.error) continue; // 搜尋失敗就跳過
     const uri = d.tracks?.items?.[0]?.uri;
     if (uri) uris.push(uri);
   }
+
+  // 3. 建立歌單
   _spMsg('建立歌單中...');
-  const me = await (await fetch('https://api.spotify.com/v1/me',
-    { headers: { Authorization: `Bearer ${token}` } })).json();
-  const pl = await (await fetch(`https://api.spotify.com/v1/users/${me.id}/playlists`, {
+  const plRes = await spFetch(`https://api.spotify.com/v1/users/${me.id}/playlists`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: `${vibe.emoji} ${vibe.title}`, description: '由 Vurv 建立的情境歌單', public: false })
-  })).json();
+  });
+  const pl = await plRes.json();
+  if (pl.error) throw new Error(`建立歌單失敗（${pl.error.status}：${pl.error.message}）`);
+  if (!pl.id) throw new Error('建立歌單失敗，請再試一次');
+
+  // 4. 加入歌曲
   if (uris.length) {
-    await fetch(`https://api.spotify.com/v1/playlists/${pl.id}/tracks`, {
+    _spMsg(`加入 ${uris.length} 首歌曲中...`);
+    const addRes = await spFetch(`https://api.spotify.com/v1/playlists/${pl.id}/tracks`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ uris })
     });
+    const addData = await addRes.json();
+    if (addData.error) throw new Error(`加入歌曲失敗（${addData.error.message}）`);
   }
+
   return { url: pl.external_urls.spotify, found: uris.length, total: songs.length };
 }
 
