@@ -692,15 +692,20 @@
     display: flex;
     justify-content: space-around;
     align-items: flex-end;
-    /* 給 nav 比按鈕高的空間，讓 flex-end 把按鈕推底 */
-    min-height: calc(52px + env(safe-area-inset-bottom));
+    min-height: calc(52px + env(safe-area-inset-bottom, 0px));
     padding: 0 0 constant(safe-area-inset-bottom);
-    padding: 0 0 env(safe-area-inset-bottom);
+    padding: 0 0 env(safe-area-inset-bottom, 0px);
     z-index: 100;
-    /* 初始隱藏，splash 結束後淡入 */
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s ease;
+  }
+  /* PWA standalone 模式：safe-area-inset-bottom 一定要有，不能是 0 */
+  @media all and (display-mode: standalone) {
+    .bottom-nav {
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+      min-height: calc(52px + max(env(safe-area-inset-bottom, 0px), 20px));
+    }
   }
   .bottom-nav.nav-ready {
     opacity: 1;
