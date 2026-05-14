@@ -691,9 +691,10 @@
     border-top: 0.5px solid var(--border);
     display: flex;
     justify-content: space-around;
-    align-items: flex-end;
-    min-height: 52px;
-    padding-bottom: 0px; /* JS 動態設定 safe area */
+    align-items: center;
+    height: 52px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: calc(52px + env(safe-area-inset-bottom, 0px));
     z-index: 100;
     opacity: 0;
     pointer-events: none;
@@ -4003,41 +4004,20 @@ document.getElementById('lang-chips').addEventListener('click', e => {
 });
 
 // ========== Toast ==========
-// bottom-nav safe area & screen padding
-// 用探針 div 量測實際 env(safe-area-inset-bottom)，再以 JS 明確設值
-// 比純 CSS env() 可靠——PWA standalone 模式下 env() 有時初始是 0
-(function fixNav() {
+// bottom-nav 高度 → screen padding 同步
+(function fixNavHeight() {
   const nav = document.querySelector('.bottom-nav');
-  if (!nav) return;
-
-  function apply() {
-    // 探針：高度 = env(safe-area-inset-bottom)，量不到就給 0
-    const probe = document.createElement('div');
-    probe.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom,0px);width:1px;pointer-events:none;opacity:0;';
-    document.body.appendChild(probe);
-    const sab = probe.getBoundingClientRect().height || 0;
-    document.body.removeChild(probe);
-
-    // iOS standalone PWA：window.navigator.standalone === true
-    // 確保 home indicator 區至少保留 34px（iPhone Face ID / Dynamic Island）
-    const isPwa = window.navigator.standalone === true;
-    const safeBottom = isPwa ? Math.max(sab, 34) : sab;
-
-    nav.style.paddingBottom = safeBottom + 'px';
-    nav.style.minHeight    = (52 + safeBottom) + 'px';
-
-    // screen 的 padding-bottom = nav 實際高 + 8px 緩衝
-    const navH = 52 + safeBottom;
+  function sync() {
+    const h = nav.getBoundingClientRect().height;
+    if (h < 10) return;
     document.querySelectorAll('.screen').forEach(s => {
-      s.style.paddingBottom = (navH + 8) + 'px';
+      s.style.paddingBottom = (h + 8) + 'px';
     });
   }
-
-  apply();
-  setTimeout(apply, 300);   // PWA 啟動時 env() 可能延遲到位
-  window.addEventListener('resize', apply);
-  window.addEventListener('pageshow', apply);
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', apply);
+  sync();
+  setTimeout(sync, 400);
+  window.addEventListener('resize', sync);
+  window.addEventListener('pageshow', sync);
 })();
 
 function showToast(msg) {
