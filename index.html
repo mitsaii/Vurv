@@ -1683,16 +1683,15 @@
     <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 52px;text-align:center;">
       <!-- Vurv 品牌 -->
       <div style="position:absolute;top:56px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.55);font-size:13px;font-weight:700;letter-spacing:3px;">VURV</div>
-      <!-- 中央色圈 -->
-      <div id="sc-centerorb" style="width:164px;height:164px;border-radius:50%;margin-bottom:44px;box-shadow:0 0 80px rgba(255,255,255,0.18),0 0 0 1px rgba(255,255,255,0.1);"></div>
+      <!-- 專輯封面 -->
+      <div id="sc-art-wrap" style="width:220px;height:220px;border-radius:20px;margin-bottom:40px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.12);flex-shrink:0;">
+        <div id="sc-art-fallback" style="width:100%;height:100%;"></div>
+        <img id="sc-albumart" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:none;" />
+      </div>
       <!-- 歌名 -->
-      <div id="sc-title" style="font-size:40px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:14px;text-shadow:0 3px 16px rgba(0,0,0,0.45);word-break:break-word;"></div>
+      <div id="sc-title" style="font-size:36px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:12px;text-shadow:0 3px 16px rgba(0,0,0,0.45);word-break:break-word;"></div>
       <!-- 歌手 -->
-      <div id="sc-artist" style="font-size:20px;font-weight:500;color:rgba(255,255,255,0.72);margin-bottom:44px;"></div>
-      <!-- 分隔線 -->
-      <div style="width:36px;height:1.5px;background:rgba(255,255,255,0.28);margin-bottom:28px;border-radius:2px;"></div>
-      <!-- 推薦語 -->
-      <div id="sc-tagline" style="font-size:17px;color:rgba(255,255,255,0.60);line-height:1.65;max-width:320px;"></div>
+      <div id="sc-artist" style="font-size:19px;font-weight:500;color:rgba(255,255,255,0.72);margin-bottom:0;"></div>
     </div>
     <!-- 底部連結 -->
     <div style="position:absolute;bottom:52px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.35);font-size:12px;letter-spacing:2.5px;font-weight:600;">VURV.VERCEL.APP</div>
@@ -4039,42 +4038,31 @@ document.getElementById('mood-chips').addEventListener('click', e => {
 // ========== 分享卡片 ==========
 let _shareSong = null;
 
-const _TAGLINES = {
-  sad:        ['有些情緒需要被聽見', '傷心的時候，這首陪著你', '情緒沒有對錯，只有這首歌'],
-  romantic:   ['送給最近讓你心動的人', '今晚要用這首暖心', '愛情就是這個音'],
-  chill:      ['什麼都不用想，就聽', '讓頻率帶著你走', '放空的最佳伴侶'],
-  electronic: ['插上耳機，換個頻道', '城市的夜，你的耳機', '讓節拍主導這一刻'],
-  jazz:       ['今晚的氛圍交給它', '一杯咖啡配這首', '時光慢一點就好'],
-  hiphop:     ['今天的你，需要這個能量', '這首就是你現在的心情', '找到那個節奏了'],
-  indie:      ['找到一首只屬於你的歌', '還好有這首', '就這首，沒有其他理由'],
-  default:    ['Vurv 覺得你現在需要聽這首', '今天的你，需要這個聲音', '就是這首了']
-};
-function _pickTagline(tags = []) {
-  const t = tags.join(' ');
-  if (/sad|melancholy|heartbreak|emotional|tear/.test(t)) return _rand(_TAGLINES.sad);
-  if (/romantic|love|sweet|crush/.test(t)) return _rand(_TAGLINES.romantic);
-  if (/chill|relax|lo-fi|bedroom|ambient/.test(t)) return _rand(_TAGLINES.chill);
-  if (/electronic|synth|edm|dance/.test(t)) return _rand(_TAGLINES.electronic);
-  if (/jazz|soul|blues/.test(t)) return _rand(_TAGLINES.jazz);
-  if (/hip-hop|hiphop|rap|trap/.test(t)) return _rand(_TAGLINES.hiphop);
-  if (/indie|folk|acoustic/.test(t)) return _rand(_TAGLINES.indie);
-  return _rand(_TAGLINES.default);
-}
-function _rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
 function _prepareShareCard(song) {
   _shareSong = song;
-  // 背景
+  // 背景漸層
   document.getElementById('sc-bg').style.background = `linear-gradient(140deg, ${song.c1} 0%, ${song.c2} 100%)`;
   // 裝飾球
   document.getElementById('sc-orb1').style.background = song.c1;
   document.getElementById('sc-orb2').style.background = song.c2;
-  // 中央色圈：反轉漸層，製造對比
-  document.getElementById('sc-centerorb').style.background = `radial-gradient(circle at 35% 35%, ${song.c2}, ${song.c1})`;
+  // 專輯封面佔位色（先顯示漸層，載入完再換圖）
+  const fallback = document.getElementById('sc-art-fallback');
+  const imgEl    = document.getElementById('sc-albumart');
+  fallback.style.background = `linear-gradient(135deg, ${song.c1}, ${song.c2})`;
+  fallback.style.display = 'block';
+  imgEl.style.display = 'none';
+  imgEl.src = '';
   // 文字
   document.getElementById('sc-title').textContent = song.title;
   document.getElementById('sc-artist').textContent = song.artist;
-  document.getElementById('sc-tagline').textContent = _pickTagline(song.tags);
+  // 非同步抓專輯圖
+  fetchSongData(song).then(({ artworkUrl }) => {
+    if (!artworkUrl || _shareSong?.id !== song.id) return;
+    const proxied = `/api/artwork?url=${encodeURIComponent(artworkUrl)}`;
+    imgEl.onload  = () => { fallback.style.display = 'none'; imgEl.style.display = 'block'; };
+    imgEl.onerror = () => { /* 保留漸層佔位 */ };
+    imgEl.src = proxied;
+  });
 }
 
 async function shareCard() {
@@ -4090,11 +4078,20 @@ async function shareCard() {
     while (!window.html2canvas && tries++ < 30) await new Promise(r => setTimeout(r, 100));
     if (!window.html2canvas) throw new Error('html2canvas 未載入');
 
+    // 等專輯圖載入完成（最多 3 秒）
+    const imgEl = document.getElementById('sc-albumart');
+    if (imgEl.src && !imgEl.complete) {
+      await Promise.race([
+        new Promise(r => { imgEl.onload = r; imgEl.onerror = r; }),
+        new Promise(r => setTimeout(r, 3000))
+      ]);
+    }
+
     const el = document.getElementById('share-card');
     const canvas = await html2canvas(el, {
       scale: 2,
-      useCORS: false,
-      allowTaint: true,
+      useCORS: true,
+      allowTaint: false,
       backgroundColor: null,
       width: 540,
       height: 960,
