@@ -1694,7 +1694,11 @@
       <div id="sc-artist" style="font-size:19px;font-weight:500;color:rgba(255,255,255,0.72);margin-bottom:0;"></div>
     </div>
     <!-- 底部連結 -->
-    <div style="position:absolute;bottom:52px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.35);font-size:12px;letter-spacing:2.5px;font-weight:600;">VURV.VERCEL.APP</div>
+    <div style="position:absolute;bottom:48px;left:0;right:0;text-align:center;">
+      <div style="display:inline-block;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:999px;padding:8px 22px;">
+        <span style="color:rgba(255,255,255,0.9);font-size:14px;font-weight:600;letter-spacing:1px;">vurv.vercel.app</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -4003,16 +4007,28 @@ document.getElementById('lang-chips').addEventListener('click', e => {
 
 // ========== Toast ==========
 // 確保 bottom-nav 實際貼底 — 量測 nav 高度後動態設 screen padding
+// PWA standalone 模式下 safe-area-inset-bottom 初始可能是 0，需要延遲重算
 (function fixNavHeight() {
   const nav = document.querySelector('.bottom-nav');
   const setScreenPad = () => {
     const h = nav.getBoundingClientRect().height;
+    if (h < 10) return; // 還沒 ready，跳過
     document.querySelectorAll('.screen').forEach(s => {
       s.style.paddingBottom = (h + 8) + 'px';
     });
   };
   setScreenPad();
+  // 延遲補跑：PWA 啟動時 safe-area 可能慢一點才到位
+  setTimeout(setScreenPad, 100);
+  setTimeout(setScreenPad, 500);
+  // resize（旋轉、鍵盤）
   window.addEventListener('resize', setScreenPad);
+  // PWA 從背景切回前景
+  window.addEventListener('pageshow', setScreenPad);
+  // visualViewport API（更精確的 iOS viewport 變化）
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', setScreenPad);
+  }
 })();
 
 function showToast(msg) {
