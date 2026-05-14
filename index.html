@@ -692,20 +692,12 @@
     display: flex;
     justify-content: space-around;
     align-items: flex-end;
-    min-height: calc(52px + env(safe-area-inset-bottom, 0px));
-    padding: 0 0 constant(safe-area-inset-bottom);
-    padding: 0 0 env(safe-area-inset-bottom, 0px);
+    min-height: 52px;
+    padding-bottom: 0px; /* JS 動態設定 safe area */
     z-index: 100;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s ease;
-  }
-  /* PWA standalone 模式：safe-area-inset-bottom 一定要有，不能是 0 */
-  @media all and (display-mode: standalone) {
-    .bottom-nav {
-      padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
-      min-height: calc(52px + max(env(safe-area-inset-bottom, 0px), 20px));
-    }
   }
   .bottom-nav.nav-ready {
     opacity: 1;
@@ -4011,29 +4003,41 @@ document.getElementById('lang-chips').addEventListener('click', e => {
 });
 
 // ========== Toast ==========
-// 確保 bottom-nav 實際貼底 — 量測 nav 高度後動態設 screen padding
-// PWA standalone 模式下 safe-area-inset-bottom 初始可能是 0，需要延遲重算
-(function fixNavHeight() {
+// bottom-nav safe area & screen padding
+// 用探針 div 量測實際 env(safe-area-inset-bottom)，再以 JS 明確設值
+// 比純 CSS env() 可靠——PWA standalone 模式下 env() 有時初始是 0
+(function fixNav() {
   const nav = document.querySelector('.bottom-nav');
-  const setScreenPad = () => {
-    const h = nav.getBoundingClientRect().height;
-    if (h < 10) return; // 還沒 ready，跳過
+  if (!nav) return;
+
+  function apply() {
+    // 探針：高度 = env(safe-area-inset-bottom)，量不到就給 0
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom,0px);width:1px;pointer-events:none;opacity:0;';
+    document.body.appendChild(probe);
+    const sab = probe.getBoundingClientRect().height || 0;
+    document.body.removeChild(probe);
+
+    // iOS standalone PWA：window.navigator.standalone === true
+    // 確保 home indicator 區至少保留 34px（iPhone Face ID / Dynamic Island）
+    const isPwa = window.navigator.standalone === true;
+    const safeBottom = isPwa ? Math.max(sab, 34) : sab;
+
+    nav.style.paddingBottom = safeBottom + 'px';
+    nav.style.minHeight    = (52 + safeBottom) + 'px';
+
+    // screen 的 padding-bottom = nav 實際高 + 8px 緩衝
+    const navH = 52 + safeBottom;
     document.querySelectorAll('.screen').forEach(s => {
-      s.style.paddingBottom = (h + 8) + 'px';
+      s.style.paddingBottom = (navH + 8) + 'px';
     });
-  };
-  setScreenPad();
-  // 延遲補跑：PWA 啟動時 safe-area 可能慢一點才到位
-  setTimeout(setScreenPad, 100);
-  setTimeout(setScreenPad, 500);
-  // resize（旋轉、鍵盤）
-  window.addEventListener('resize', setScreenPad);
-  // PWA 從背景切回前景
-  window.addEventListener('pageshow', setScreenPad);
-  // visualViewport API（更精確的 iOS viewport 變化）
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', setScreenPad);
   }
+
+  apply();
+  setTimeout(apply, 300);   // PWA 啟動時 env() 可能延遲到位
+  window.addEventListener('resize', apply);
+  window.addEventListener('pageshow', apply);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', apply);
 })();
 
 function showToast(msg) {
