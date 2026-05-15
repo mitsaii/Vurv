@@ -66,22 +66,23 @@
     margin: 0 auto;
     height: 100vh;        /* fallback */
     height: 100dvh;       /* iOS Safari 等動態視窗,扣掉網址列才不會超出 */
-    box-sizing: border-box; /* padding 不再撐大高度，footer 才會置底 */
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     background: var(--bg);
     position: relative;
     overflow: hidden;
-    /* iOS 瀏海 / Dynamic Island 安全區域 */
+    /* iOS 瀏海 / Dynamic Island 安全區域 — 統一在這裡處理 */
     padding-top: env(safe-area-inset-top);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .screen {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 14px 18px max(72px, calc(52px + env(safe-area-inset-bottom)));
+    padding: 14px 18px 20px;
     display: none;
     animation: fadeIn .25s ease;
   }
@@ -683,17 +684,16 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Bottom nav — flex child，永遠自然貼在 .app 最底部，無需 fixed */
+  /* Bottom nav — flex child of .app，高度固定 52px，safe area 由 .app 的 padding-bottom 處理 */
   .bottom-nav {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
+    flex-shrink: 0;
+    width: 100%;
     background: var(--surface);
     border-top: 0.5px solid var(--border);
     display: flex;
     justify-content: space-around;
-    align-items: flex-end;
-    height: calc(52px + env(safe-area-inset-bottom, 0px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    align-items: center;
+    height: 52px;
     z-index: 100;
     opacity: 0;
     pointer-events: none;
@@ -1904,24 +1904,22 @@
     </div>
   </div>
 
-  <!-- BOTTOM NAV placeholder -->
+  <!-- bottom-nav 作為 .app 的 flex child，safe area 由 .app padding-bottom 統一處理 -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" data-screen="home" onclick="navTo('home')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      首頁
+    </button>
+    <button class="nav-btn" data-screen="discover" onclick="navTo('discover')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
+      探索
+    </button>
+    <button class="nav-btn" data-screen="likes" onclick="navTo('likes')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+      歌單
+    </button>
+  </div>
 
-</div>
-
-<!-- nav 放 .app 外，避免 iOS overflow:hidden 裁掉 fixed 元素 -->
-<div class="bottom-nav">
-  <button class="nav-btn active" data-screen="home" onclick="navTo('home')">
-    <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-    首頁
-  </button>
-  <button class="nav-btn" data-screen="discover" onclick="navTo('discover')">
-    <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
-    探索
-  </button>
-  <button class="nav-btn" data-screen="likes" onclick="navTo('likes')">
-    <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-    歌單
-  </button>
 </div>
 
 <script>
@@ -4003,21 +4001,7 @@ document.getElementById('lang-chips').addEventListener('click', e => {
 });
 
 // ========== Toast ==========
-// bottom-nav 高度 → screen padding 同步
-(function fixNavHeight() {
-  const nav = document.querySelector('.bottom-nav');
-  function sync() {
-    const h = nav.getBoundingClientRect().height;
-    if (h < 10) return;
-    document.querySelectorAll('.screen').forEach(s => {
-      s.style.paddingBottom = (h + 8) + 'px';
-    });
-  }
-  sync();
-  setTimeout(sync, 400);
-  window.addEventListener('resize', sync);
-  window.addEventListener('pageshow', sync);
-})();
+// nav 現在是 .app flex child，高度固定 52px，不需要動態同步
 
 function showToast(msg) {
   const t = document.getElementById('toast');
