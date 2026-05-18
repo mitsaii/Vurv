@@ -64,8 +64,9 @@
   .app {
     max-width: 420px;
     margin: 0 auto;
-    height: 100vh;        /* fallback */
-    height: 100dvh;       /* iOS Safari 等動態視窗,扣掉網址列才不會超出 */
+    height: 100vh;                              /* fallback for old browsers */
+    height: 100dvh;                             /* dynamic viewport */
+    height: var(--app-h, 100dvh);               /* JS-measured fallback for iOS PWA */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -1928,6 +1929,22 @@
 </div>
 
 <script>
+// ========== iOS PWA viewport-height fix ==========
+// 100dvh 在某些 iOS 版本的 standalone PWA 下會回傳錯誤值,
+// 用 window.innerHeight 作為更可靠的 fallback。
+(function fixAppHeight() {
+  function update() {
+    const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    document.documentElement.style.setProperty('--app-h', h + 'px');
+  }
+  update();
+  window.addEventListener('resize', update);
+  window.addEventListener('orientationchange', () => setTimeout(update, 100));
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', update);
+  }
+})();
+
 // ========== Mock song database ==========
 // Each song has tags. Recommendation = tag overlap.
 const SONGS = [
