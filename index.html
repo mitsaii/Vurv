@@ -84,7 +84,9 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 14px 18px 20px;
+    /* 底部留 nav (52px) + safe area + 一點呼吸空間,
+       因為 nav 改成 position:fixed 了 */
+    padding: 14px 18px calc(72px + env(safe-area-inset-bottom));
     display: none;
     animation: fadeIn .25s ease;
   }
@@ -686,11 +688,13 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Bottom nav — flex child of .app
-     按鈕高度 52px,padding-bottom 吸收 home indicator 安全區,
-     nav 自己的白色背景延伸到螢幕最底,視覺上就貼底了 */
+  /* Bottom nav — 用 fixed 釘在螢幕最底,完全不依賴 .app 高度
+     (iOS PWA standalone 下 100dvh 會詭異,fixed bottom:0 最可靠) */
   .bottom-nav {
-    flex-shrink: 0;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    max-width: 420px;
+    margin: 0 auto;
     width: 100%;
     background: var(--surface);
     border-top: 0.5px solid var(--border);
