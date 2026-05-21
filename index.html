@@ -3,13 +3,28 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Vurv</title>
+<title>Vurv — 從一首歌開始的音樂探索</title>
+<meta name="description" content="Vurv 用 tag-based similarity 從一首歌出發,精準推薦下一首給你聽。每張卡片都告訴你「為什麼推這首」 — 共享了哪些音樂特徵、相似度幾分。" />
+
+<!-- OG meta(LINE / Twitter / FB / Slack 分享預覽用) -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://vurv.vercel.app/" />
+<meta property="og:title" content="Vurv — 從一首歌開始的音樂探索" />
+<meta property="og:description" content="從你喜歡的一首歌出發,Vurv 用 tag-based 演算法精準推薦下一首,每張卡片附「為什麼推」說明。" />
+<meta property="og:image" content="https://vurv.vercel.app/og-image.svg" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Vurv — 從一首歌開始的音樂探索" />
+<meta name="twitter:description" content="從你喜歡的一首歌出發,精準推薦下一首給你聽。" />
+<meta name="twitter:image" content="https://vurv.vercel.app/og-image.svg" />
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="manifest" href="/manifest.json" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Vurv" />
-<meta name="theme-color" content="#ffffff" />
+<meta name="theme-color" content="#d96e3a" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4668297380257099"
@@ -436,6 +451,45 @@
     font-size: 13px;
     letter-spacing: 1px;
     color: var(--primary);
+  }
+
+  /* Open in Spotify / Apple Music */
+  .open-in {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .oi-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: border-color .15s, background .15s, transform .1s;
+  }
+  .oi-btn:active { transform: scale(0.97); }
+  .oi-btn[data-platform="spotify"]:hover {
+    border-color: #1DB954;
+    background: rgba(29, 185, 84, 0.06);
+  }
+  .oi-btn[data-platform="spotify"] .oi-icon { color: #1DB954; }
+  .oi-btn[data-platform="apple"]:hover {
+    border-color: #FA243C;
+    background: rgba(250, 36, 60, 0.06);
+  }
+  .oi-btn[data-platform="apple"] .oi-icon { color: #FA243C; }
+  .oi-btn.disabled {
+    opacity: 0.45;
+    pointer-events: none;
   }
 
   /* Action row */
@@ -1599,7 +1653,8 @@
     </div>
 
     <div style="text-align: center; padding: 16px 0 16px; font-size: 11px; color: var(--text-3, #999);">
-      © 2026 Vurv · <a href="/about" style="color: inherit; text-decoration: underline;">關於</a> · <a href="/how-it-works" style="color: inherit; text-decoration: underline;">推薦原理</a> · <a href="/privacy" style="color: inherit; text-decoration: underline;">隱私權政策</a>
+      <a href="https://buymeacoffee.com/REPLACE_ME" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #FFDD00; color: #1a1a1a; text-decoration: none; border-radius: 999px; font-size: 12px; font-weight: 600; margin-bottom: 12px;">☕ 請我喝一杯咖啡</a>
+      <div>© 2026 Vurv · <a href="/about" style="color: inherit; text-decoration: underline;">關於</a> · <a href="/how-it-works" style="color: inherit; text-decoration: underline;">推薦原理</a> · <a href="/privacy" style="color: inherit; text-decoration: underline;">隱私權政策</a></div>
     </div>
   </div>
 
@@ -3116,11 +3171,22 @@ function renderStack() {
             <span class="sim-badge">${simLabel(score)}</span>
           </div>
         </div>
+        <div class="open-in" id="oi-${song.id}">
+          <a class="oi-btn" data-platform="spotify" target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             href="https://open.spotify.com/search/${encodeURIComponent(song.title + ' ' + song.artist)}">
+            <span class="oi-icon" aria-hidden="true">●</span> 在 Spotify 聽
+          </a>
+          <a class="oi-btn" data-platform="apple" target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             href="https://music.apple.com/search?term=${encodeURIComponent(song.title + ' ' + song.artist)}">
+            <span class="oi-icon" aria-hidden="true">●</span> 在 Apple Music 聽
+          </a>
+        </div>
       </div>
     `;
     stack.appendChild(card);
     attachSwipe(card);
     loadArtwork(song, document.getElementById(`cc-${song.id}`));
+    fillOpenInLinks(song);
   }
   startFakePlay();
   updateQueueUI();
@@ -3324,7 +3390,7 @@ async function fetchSongData(song) {
     song.title,
   ];
 
-  let result = { previewUrl: null, artworkUrl: null };
+  let result = { previewUrl: null, artworkUrl: null, appleMusicUrl: null, spotifySearchUrl: null };
   let lastError = null;
   for (const q of queryForms) {
     try {
@@ -3337,6 +3403,8 @@ async function fetchSongData(song) {
         result = {
           previewUrl: r.previewUrl || null,
           artworkUrl: r.artworkUrl100.replace('100x100bb', '600x600bb'),
+          appleMusicUrl: r.trackViewUrl || null,
+          spotifySearchUrl: null, // 下面統一填
         };
         console.log(`[Vurv] artwork OK: ${song.title}${r.previewUrl ? ' (with preview)' : ' (no preview)'}`);
         break;
@@ -3346,6 +3414,8 @@ async function fetchSongData(song) {
   if (!result.artworkUrl) {
     console.warn(`[Vurv] artwork FAIL: ${song.title} / ${song.artist}`, lastError);
   }
+  // Spotify 沒提供 song-id-by-search 的公開 API,改用 search URL — 點下去開啟 Spotify 搜尋頁
+  result.spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent(song.title + ' ' + song.artist)}`;
   songDataCache[song.id] = result;
   return result;
 }
@@ -3380,6 +3450,29 @@ function loadArtwork(song, coverEl) {
       probe2.src = fallback;
     };
     probe.src = artworkUrl;
+  });
+}
+
+// 把 Spotify / Apple Music 深連結填到卡片底部按鈕上
+function fillOpenInLinks(song) {
+  const wrap = document.getElementById(`oi-${song.id}`);
+  if (!wrap) return;
+  fetchSongData(song).then(({ appleMusicUrl, spotifySearchUrl }) => {
+    if (!wrap.isConnected) return;
+    const spotifyBtn = wrap.querySelector('[data-platform="spotify"]');
+    const appleBtn   = wrap.querySelector('[data-platform="apple"]');
+
+    // Spotify search URL 一定有(我們自己組的)
+    if (spotifyBtn) spotifyBtn.href = spotifySearchUrl;
+
+    // Apple Music 連結:有 trackViewUrl 就直接深連結到那首歌,否則退而求其次用 search URL
+    if (appleBtn) {
+      if (appleMusicUrl) {
+        appleBtn.href = appleMusicUrl;
+      } else {
+        appleBtn.href = `https://music.apple.com/search?term=${encodeURIComponent(song.title + ' ' + song.artist)}`;
+      }
+    }
   });
 }
 
